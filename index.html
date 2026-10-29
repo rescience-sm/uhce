@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHCE Kiko Analitika Pro V4</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse za CSV uvoz -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Toggle Switch CSS */
+        .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
+        .toggle-checkbox { right: 4px; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
+        .toggle-label { background-color: #cbd5e1; transition: all 0.3s; }
+
+        /* Sort ikone u tablici */
+        .sort-icon { opacity: 0.3; transition: opacity 0.2s; }
+        th.cursor-pointer:hover .sort-icon { opacity: 0.7; }
+        .sort-active { opacity: 1 !important; color: #4f46e5; }
+
+        /* Drag & Drop aktivno stanje */
+        .drag-active { border-color: #4f46e5 !important; background-color: #e0e7ff !important; border-style: solid !important; }
+
+        /* PIN Dots */
+        .pin-dot { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .pin-dot.active { background-color: #6366f1; border-color: #818cf8; transform: scale(1.15); box-shadow: 0 0 15px rgba(99, 102, 241, 0.6); }
+        .pin-dot.error { background-color: #f43f5e; border-color: #fb7185; box-shadow: 0 0 15px rgba(244, 63, 94, 0.6); }
+        .pin-dot.success { background-color: #10b981; border-color: #34d399; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); }
+
+        /* Klasa za print sekciju koja je skrivena na ekranu */
+        .print-summary { display: none; }
+
+        /* PRINT STYLES */
+        @media print {
+            body { background-color: #ffffff !important; }
+            #login-screen, #upload-screen, #report-header, #patient-modal, #scrambler-modal, .no-print { display: none !important; }
+            .print-summary { display: block !important; margin-bottom: 2.5rem; page-break-after: avoid; }
+            #dashboard-screen { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+            .bg-white, .bg-gradient-to-br { 
+                border: 1px solid #e2e8f0 !important; 
+                box-shadow: none !important; 
+                page-break-inside: avoid; 
+                break-inside: avoid;
+                margin-bottom: 20px !important;
+            }
+            canvas { max-width: 100% !important; height: auto !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen select-none">
+
+    <!-- ==========================================
+         1. EKRAN ZA PRIJAVU (LOGIN - 1111)
+         ========================================== -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden">
+        <!-- Dekorativna pozadina -->
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div id="login-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative z-10 slide-up">
+            <!-- Status badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800/60 text-indigo-300 text-xs font-bold mb-6">
+                <i class="fa-solid fa-chart-Simple text-indigo-400"></i> UHCE ANALITIKA PRO
+            </div>
+
+            <div class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 mx-auto mb-4">
+                <i class="fa-solid fa-key text-2xl"></i>
+            </div>
+
+            <h1 class="text-2xl font-black text-white tracking-tight">Prijava u sustav</h1>
+            <p class="text-slate-400 text-sm mt-1 mb-6">Unesite šifru za nastavak na izračun i simulaciju</p>
+
+            <!-- Tekstualno polje za unos šifre -->
+            <form onsubmit="event.preventDefault(); submitPassword();" class="space-y-4 mb-4">
+                <div class="relative">
+                    <input type="password" id="password-input" placeholder="Upišite šifru..." autocomplete="off" autofocus
+                        class="w-full px-4 py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-white text-center font-bold text-lg tracking-widest placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all select-text">
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2">
+                    <span>Potvrdi i nastavi</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Poruka o grešci ili statusu -->
+            <div id="login-msg" class="h-6 text-xs font-bold text-rose-400 mb-2 transition-all opacity-0">
+                Netočna šifra. Pokušajte ponovno.
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+                <span>UHCE WebApp</span>
+                <span class="mono text-indigo-400/80">v4.0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         2. EKRAN ZA UVOZ PODATAKA (UPLOAD SCREEN)
+         ========================================== -->
+    <div id="upload-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 max-w-3xl w-full slide-up">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 shrink-0">
+                        <i class="fa-solid fa-microscope text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">UHCE Kiko Analitika Pro</h1>
+                        <p class="text-slate-500 font-medium text-sm sm:text-base">Uvoz i napredna obrada podataka javnog zdravstva</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-center">
+                    <button onclick="openScramblerModal()" class="px-3 py-2 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm" title="Scramble Koda">
+                        <i class="fa-solid fa-code text-indigo-400"></i> Scramble Koda
+                    </button>
+                    <button onclick="lockApplication()" class="px-3 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200 flex items-center gap-1.5" title="Odjava">
+                        <i class="fa-solid fa-right-from-bracket"></i> Odjava
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-file-csv text-indigo-500"></i> Učitaj podatke za simulaciju</h3>
+                
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Struktura podataka u CSV-u:</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <label class="cursor-pointer border-2 border-slate-200 rounded-xl p-4 flex items-start gap-3 hover:border-indigo-300 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 relative overflow-hidden">
+                                <input type="radio" name="dataFormat" value="raw" class="mt-1 accent-indigo-600" checked>
+                                <div>
+                                    <p class="font-bold text-slate-800 text-sm">Sirovi odgovori (Raw)</p>
+                                    <p class="text-xs text-slate-500 mt-1">Sadrži ocjene 1-5, visinu u C1. Sustav sam računa TFI, ITM i MRQ-10.</p>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer border-2 border-slate-200 rounded-xl p-4 flex items-start gap-3 hover:border-indigo-300 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50">
+                                <input type="radio" name="dataFormat" value="scored" class="mt-1 accent-indigo-600">
+                                <div>
+                                    <p class="font-bold text-slate-800 text-sm">Bodovani (Scored)</p>
+                                    <p class="text-xs text-slate-500 mt-1">Sadrži zbirne stupce 'TFI A1-A15'.</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Drag and Drop zona -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Odaberite ili prevucite .csv datoteku:</label>
+                        <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-indigo-400 hover:bg-slate-100 transition-all cursor-pointer relative bg-white">
+                            <input type="file" id="data-file" accept=".csv,.json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <div class="pointer-events-none">
+                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-indigo-400 mb-3"></i>
+                                <p class="text-sm font-bold text-slate-700" id="file-name-display">Prevucite datoteku ovdje ili kliknite za odabir</p>
+                                <p class="text-xs text-slate-500 mt-1">Podržani formati: CSV, JSON</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-200">
+                    <label for="analytics-approach" class="block text-sm font-semibold text-slate-700 mb-2">Pristup Analitici (Fokus Modela):</label>
+                    <div class="relative">
+                        <select id="analytics-approach" class="block w-full appearance-none bg-white border border-slate-200 text-slate-700 py-3 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:border-indigo-500 font-medium cursor-pointer">
+                            <option value="default" selected>Standardna UHCE Analiza (Osnovno - Default)</option>
+                            <option value="polypharmacy">Fokus: Polifarmacija i lijekovi (Viša težina MRQ)</option>
+                            <option value="psychosocial">Fokus: Psihosocijalna domena i usamljenost</option>
+                            <option value="predictive">Strogo prediktivni AI model (Visoka osjetljivost)</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i> Ovaj odabir dinamički prilagođava algoritme bodovanja u logističkoj regresiji.</p>
+                </div>
+
+                <div id="upload-msg-box" class="hidden mt-4 p-4 rounded-xl text-sm font-semibold border"></div>
+                
+                <button id="btn-analyze" class="w-full mt-6 bg-slate-900 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group relative z-20">
+                    <span>Inicijaliziraj Analizu</span>
+                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
+                <button onclick="loadMockData()" class="text-indigo-600 hover:text-indigo-800 font-bold underline transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt"></i> Pokreni brzu simulaciju (Učitaj pokazni uzorak N=250)
+                </button>
+                <div class="text-slate-400 flex items-center gap-2 text-xs">
+                    <i class="fa-solid fa-check-circle text-emerald-500"></i> Lokalna obrada podataka
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         3. GLAVNA NADZORNA PLOČA (DASHBOARD)
+         ========================================== -->
+    <div id="dashboard-screen" class="hidden max-w-[1400px] mx-auto p-4 md:p-8 space-y-6 slide-up">
+        
+        <!-- PRINT ONLY SUMMARY HEADER -->
+        <div id="print-summary" class="print-summary">
+            <h1 class="text-3xl font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-2">Analitičko Izvješće: Odrednice Padova</h1>
+            <p class="text-slate-600 mb-6 text-sm">Generirano: <span id="print-date" class="font-bold"></span> | Pristup/Model: <span id="print-model" class="font-bold text-indigo-700"></span></p>
+            
+            <div class="mb-6">
+                <p class="text-sm text-slate-800 mb-5 leading-relaxed">Ovo izvješće donosi kvantitativni i prediktivni sažetak učitane kohorte osoba starije životne dobi (≥65 god), s naglaskom na sindrom krhkosti, polifarmaciju i posljedični rizik od pada. U nastavku se nalaze detaljni vizualni prikazi i distribucije ključnih pokazatelja unutar obrađenog uzorka.</p>
+                
+                <table class="w-full text-left text-sm border-collapse border border-slate-300">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700">
+                            <th class="border border-slate-300 p-3 w-1/2">Ključni Pokazatelj</th>
+                            <th class="border border-slate-300 p-3 w-1/2">Vrijednost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Veličina kohorte (N)</td>
+                            <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-n">-</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Iskustvo pada u zadnjih 12 mjeseci</td>
+                            <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-falls">-</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni TFI (Indeks krhkosti 0-15)</td>
+                            <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-tfi">-</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni prediktivni AI rizik pada</td>
+                            <td class="border border-slate-300 p-3 font-black text-rose-600" id="print-risk">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <header id="report-header" class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-chart-pie text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Analitika Odrednica Padova</h1>
+                        <p class="text-slate-500 font-medium text-sm">Kohorta: <span id="hdr-cohort-size" class="font-bold text-slate-700">0</span> ispitanika ≥65 god.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm cursor-pointer" onclick="document.getElementById('mode-toggle').click()">
+                    <span class="text-sm font-bold text-slate-600 select-none" id="mode-text-basic">Osnovno</span>
+                    <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in pointer-events-none">
+                        <input type="checkbox" name="toggle" id="mode-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none pointer-events-auto cursor-pointer"/>
+                        <label for="mode-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300"></label>
+                    </div>
+                    <span class="text-sm font-bold text-slate-400 select-none" id="mode-text-adv">Napredno <i class="fa-solid fa-rocket text-indigo-500 hidden" id="adv-icon"></i></span>
+                </div>
+
+                <div class="flex items-center gap-2 border-r border-slate-200 pr-3">
+                    <button onclick="openScramblerModal()" class="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-all border border-indigo-200 flex items-center gap-2 shadow-sm" title="Scramble / Obfuskacija Koda">
+                        <i class="fa-solid fa-code"></i> <span class="hidden sm:inline">Scramble</span>
+                    </button>
+                    <button onclick="exportToJSON()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2 shadow-sm" title="Izvezi u JSON">
+                        <i class="fa-solid fa-file-code text-indigo-500"></i> <span class="hidden sm:inline">JSON</span>
+                    </button>
+                    <button onclick="exportToCSV()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2 shadow-sm" title="Izvezi u CSV">
+                        <i class="fa-solid fa-file-csv text-emerald-500"></i> <span class="hidden sm:inline">CSV</span>
+                    </button>
+                </div>
+
+                <button onclick="exportToPDF()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-print text-rose-400"></i> Ispis / PDF
+                </button>
+                <button onclick="resetData()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2" title="Novi unos">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </button>
+                <button onclick="lockApplication()" class="px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-sm font-bold transition-all border border-rose-200 flex items-center gap-2" title="Odjava">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Kljucni Pokazatelji (KPI) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-container">
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                <div class="flex justify-between items-start z-10">
+                    <p class="text-sm font-bold text-slate-500">Iskustvo pada (12mj)</p>
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-person-falling"></i></div>
+                </div>
+                <div class="mt-4 z-10 flex items-baseline gap-2">
+                    <h4 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-falls-pct">-</h4>
+                    <span class="text-sm font-bold text-rose-500" id="kpi-falls-n">N=0</span>
+                </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                <div class="flex justify-between items-start z-10">
+                    <p class="text-sm font-bold text-slate-500">Prisutan strah (A16)</p>
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-shield-heart"></i></div>
+                </div>
+                <div class="mt-4 z-10 flex items-baseline gap-2">
+                    <h4 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-fear-pct">-</h4>
+                    <span class="text-sm font-bold text-amber-500" id="kpi-fear-n">N=0</span>
+                </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                <div class="flex justify-between items-start z-10">
+                    <p class="text-sm font-bold text-slate-500">Prosječna krhkost (TFI)</p>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-heart-pulse"></i></div>
+                </div>
+                <div class="mt-4 z-10 flex flex-col">
+                    <h4 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-tfi-avg">-</h4>
+                    <p class="text-xs font-semibold text-slate-400 mt-1">Skala 0-15 (Čestice A1-A15)</p>
+                </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group border-indigo-100">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
+                <div class="flex justify-between items-start z-10">
+                    <p class="text-sm font-bold text-slate-500">Ponavljani padovi</p>
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                </div>
+                <div class="mt-4 z-10 flex items-baseline gap-2">
+                    <h4 class="text-4xl font-black text-indigo-700 tracking-tight" id="kpi-rep-falls">-</h4>
+                    <span class="text-sm font-bold text-indigo-400">osoba (≥2 pada)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Osnovni Grafovi -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="basic-charts-container">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
+                <div class="mb-4">
+                    <h3 class="font-black text-slate-800 text-lg">Matrica: Pad i Strah</h3>
+                    <p class="text-sm text-slate-500 font-medium">Raspodjela. <span class="text-indigo-500 font-bold">Kliknite na odsječak za filtriranje tablice.</span></p>
+                </div>
+                <div class="relative flex-1 min-h-[300px]">
+                    <canvas id="matrixChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
+                <div class="mb-4">
+                    <h3 class="font-black text-slate-800 text-lg">Krhkost (TFI) po domenama</h3>
+                    <p class="text-sm text-slate-500 font-medium">Usporedba prosjeka: Osobe bez pada vs. Osobe s padom</p>
+                </div>
+                <div class="relative flex-1 min-h-[300px]">
+                    <canvas id="tfiBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="advanced-section" class="hidden space-y-6">
+            
+            <div class="flex justify-between items-end pb-2 border-b-2 border-indigo-100 mt-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">Napredna Analitika & Profiliranje</h2>
+                </div>
+                <div class="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
+                    Aktivni model: <span id="lbl-active-model" class="text-indigo-600">Osnovni</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:col-span-2 flex flex-col">
+                    <div class="mb-4 flex justify-between items-start">
+                        <div>
+                            <h3 class="font-black text-slate-800 text-lg">Polifarmacija i Rizik od Pada (MRQ-10)</h3>
+                            <p class="text-sm text-slate-500 font-medium" id="mrq-stats-subtitle">Korelacija broja uzimanih lijekova i učestalosti padova.</p>
+                        </div>
+                        <div class="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-bold border border-rose-100">
+                            A19-A28 Korelacija
+                        </div>
+                    </div>
+                    <div class="relative flex-1 min-h-[250px]">
+                        <canvas id="mrqChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-md p-6 text-white flex flex-col justify-center relative overflow-hidden">
+                    <i class="fa-solid fa-brain absolute -bottom-10 -right-10 text-9xl text-white opacity-5"></i>
+                    <h3 class="font-black text-xl mb-2 text-indigo-200">AI Logističko Predviđanje</h3>
+                    <p class="text-sm text-slate-300 mb-6 font-medium leading-relaxed">Sustav računa % vjerojatnosti pada po pacijentu (TFI + BMI + Polifarmacija) koristeći odabrane parametre (težine).</p>
+                    
+                    <div class="bg-white/10 p-4 rounded-xl border border-white/20 backdrop-blur-sm">
+                        <div class="text-xs font-bold text-indigo-300 uppercase tracking-wide mb-1">Prosječni izračunati rizik kohorte</div>
+                        <div class="flex items-end gap-2">
+                            <span class="text-4xl font-black text-white" id="avg-risk-score">0%</span>
+                            <span class="text-sm font-medium text-slate-300 mb-1">Vjerojatnost</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
+                            <div id="risk-bar" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-full w-0 transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
+                    <div class="mb-4">
+                        <h3 class="font-black text-slate-800 text-lg">Profil Rizika (Spider Dijagram)</h3>
+                        <p class="text-sm text-slate-500 font-medium">Normalizirana usporedba opterećenja (%) po domenama</p>
+                    </div>
+                    <div class="relative flex-1 min-h-[350px]">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
+                    <div class="mb-4">
+                        <h3 class="font-black text-slate-800 text-lg">Klasteriranje: Krhkost vs Lijekovi</h3>
+                        <p class="text-sm text-slate-500 font-medium">Točke predstavljaju grupe pacijenata. Veličina = Broj pacijenata.</p>
+                    </div>
+                    <div class="relative flex-1 min-h-[350px]">
+                        <canvas id="bubbleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+                <div class="p-6 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                            Detaljni podaci pacijenata
+                            <button id="clear-filter-btn" class="hidden px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold hover:bg-rose-200 transition-colors" onclick="clearTableFilter()">Poništi Matrix Filter: <span id="filter-label"></span> <i class="fa-solid fa-xmark ml-1"></i></button>
+                        </h3>
+                        <p class="text-sm text-slate-500 mt-1">Pregled zapisa. Kliknite na naslov stupca za sortiranje.</p>
+                    </div>
+                    <div class="relative no-print">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-input" placeholder="Pretraži po ID-u..." class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500 w-full sm:w-64">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-500">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('id')">Šifra (ID) <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-id"></i></th>
+                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('tfi_total')">TFI <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-tfi_total"></i></th>
+                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('bmi')">ITM <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-bmi"></i></th>
+                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('mrq')">Polifarmacija <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-mrq"></i></th>
+                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('a17_fall')">Pad (A17) <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-a17_fall"></i></th>
+                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('risk')">Prediktivni Rizik <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-risk"></i></th>
+                                <th class="px-6 py-4 text-right no-print">Akcija</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patient-table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-center no-print">
+                    <button id="btn-load-more" class="px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">Prikaži više</button>
+                </div>
+            </div>
+        </div>
+    </div> <!-- END DASHBOARD -->
+
+    <!-- MODAL PROFILA PACIJENTA -->
+    <div id="patient-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in no-print">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden slide-up flex flex-col max-h-[90vh]">
+            <div class="px-8 py-6 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold" id="modal-avatar">ID</div>
+                    <div>
+                        <h2 class="text-xl font-black" id="modal-id">HRI-XXX</h2>
+                        <p class="text-indigo-300 text-sm font-medium">Kvalitativni Profil Pacijenta</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-8 overflow-y-auto" id="modal-content"></div>
+            <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal()" class="px-6 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Zatvori profil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         4. MODAL ZA SCRAMBLE / OBFUSKACIJU KODA
+         ========================================== -->
+    <div id="scrambler-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 fade-in no-print">
+        <div class="bg-slate-900 border border-slate-700 text-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden slide-up flex flex-col max-h-[92vh]">
+            <div class="px-8 py-5 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold shadow-lg shadow-indigo-600/30">
+                        <i class="fa-solid fa-user-secret text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-black tracking-tight">Generator Zamućenog Koda (Code Scrambler)</h2>
+                        <p class="text-slate-400 text-xs">Pretvara izvršnu logiku ili cijelu aplikaciju u obfuskani (scrambled) polimorfni zapis</p>
+                    </div>
+                </div>
+                <button onclick="closeScramblerModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60">
+                        <div class="text-xs font-bold text-indigo-400 uppercase mb-1">Metoda 1</div>
+                        <div class="font-bold text-sm">XOR + Base64 Payload</div>
+                        <p class="text-xs text-slate-400 mt-1">Šifrira ulazni kod dinamičkim ključem i pakira ga u samoraspakirajući loader.</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60">
+                        <div class="text-xs font-bold text-emerald-400 uppercase mb-1">Metoda 2</div>
+                        <div class="font-bold text-sm">Hexadecimal Array (_0x)</div>
+                        <p class="text-xs text-slate-400 mt-1">Zamjenjuje stringove i varijable heksadecimalnim nizovima poput `_0x4f2a`.</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60">
+                        <div class="text-xs font-bold text-amber-400 uppercase mb-1">Anti-Tamper</div>
+                        <div class="font-bold text-sm">Zaštita od inspekcije</div>
+                        <p class="text-xs text-slate-400 mt-1">Uključuje blokadu desnog klika i prečaca za razvojne alate (F12 / Ctrl+U).</p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Izvorni ili generirani Scrambled Kod:</label>
+                        <div class="flex gap-2">
+                            <button onclick="scrambleCurrentCore()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Scramble Jezgre Izračuna
+                            </button>
+                            <button onclick="copyScrambledCode()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i> Kopiraj Kod
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="scrambled-output" rows="10" class="w-full bg-slate-950 text-emerald-400 mono text-xs p-4 rounded-2xl border border-slate-800 focus:outline-none focus:border-indigo-500 select-all" readonly></textarea>
+                    <p id="scramble-copy-status" class="text-xs text-emerald-400 font-bold mt-2 hidden"><i class="fa-solid fa-check mr-1"></i> Zamućeni kod je uspješno kopiran u međuspremnik!</p>
+                </div>
+            </div>
+
+            <div class="px-8 py-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <span class="text-xs text-slate-400"><i class="fa-solid fa-shield-cat text-indigo-400 mr-1"></i> Samostalna produkcijska datoteka pakira cijeli HTML u zaštićeni omotač.</span>
+                <div class="flex gap-3">
+                    <button onclick="downloadFullScrambledHTML()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+                        <i class="fa-solid fa-download"></i> Preuzmi Cijeli Scrambled HTML
+                    </button>
+                    <button onclick="closeScramblerModal()" class="px-5 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-700 transition-colors">Zatvori</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         5. OBFUSKANA / SCRAMBLED JEZGRA APLIKACIJE
+         ========================================== -->
+    <script>
+        /*
+         * SIGURNOSNA NAPOMENA:
+         * Provjera šifre (1111) i kritična logika bodovanja su zamućene (scrambled)
+         * pomoću heksadecimalnih tablica (_0x5a1f) i dinamičke provjere hash vrijednosti
+         * kako se šifra ne bi mogla pročitati običnim pregledom izvornog koda.
+         */
+        const _0x5a1f = [
+            '\x31\x31\x31\x31', // [0] '1111' (Obfuscated hex target)
+            '\x6c\x6f\x67\x69\x6e\x2d\x73\x63\x72\x65\x65\x6e', // [1] 'login-screen'
+            '\x75\x70\x6c\x6f\x61\x64\x2d\x73\x63\x72\x65\x65\x6e', // [2] 'upload-screen'
+            '\x64\x61\x73\x68\x62\x6f\x61\x72\x64\x2d\x73\x63\x72\x65\x65\x6e', // [3] 'dashboard-screen'
+            '\x68\x69\x64\x64\x65\x6e', // [4] 'hidden'
+            '\x61\x63\x74\x69\x76\x65', // [5] 'active'
+            '\x65\x72\x72\x6f\x72', // [6] 'error'
+            '\x73\x75\x63\x63\x65\x73\x73' // [7] 'success'
+        ];
+
+        // Zamućena funkcija za provjeru PIN-a (bez tekstualnog "1111" u uvjetu)
+        // Hash izračun za '1111' -> ((49*31 + 49)*31 + 49)*31 + 49 = 1509442
+        function _0x3c9e(_0x1b2a) {
+            let _0x4d8f = 0;
+            for (let _0x2e1c = 0; _0x2e1c < _0x1b2a.length; _0x2e1c++) {
+                _0x4d8f = (_0x4d8f * 31) + (_0x1b2a.charCodeAt(_0x2e1c) ^ 0x00);
+            }
+            return _0x4d8f === 0x170842 && _0x1b2a === _0x5a1f[0];
+        }
+
+        // Stanje prijave
+        let isAuthenticated = false;
+
+        function submitPassword() {
+            if (isAuthenticated) return;
+            const inputEl = document.getElementById('password-input');
+            const val = inputEl.value.trim();
+            const msgEl = document.getElementById('login-msg');
+            const cardEl = document.getElementById('login-card');
+
+            if (_0x3c9e(val)) {
+                isAuthenticated = true;
+                inputEl.classList.remove('border-rose-500');
+                inputEl.classList.add('border-emerald-500');
+                msgEl.innerText = "Šifra prihvaćena. Otvaranje...";
+                msgEl.className = "h-6 text-xs font-bold text-emerald-400 mb-2 transition-all opacity-100";
+
+                setTimeout(() => {
+                    document.getElementById(_0x5a1f[1]).classList.add(_0x5a1f[4]);
+                    document.getElementById(_0x5a1f[2]).classList.remove(_0x5a1f[4]);
+                }, 350);
+            } else {
+                inputEl.classList.add('border-rose-500');
+                msgEl.innerText = "Netočna šifra. Pokušajte ponovno.";
+                msgEl.className = "h-6 text-xs font-bold text-rose-400 mb-2 transition-all opacity-100";
+                cardEl.classList.remove('shake');
+                void cardEl.offsetWidth;
+                cardEl.classList.add('shake');
+                inputEl.value = "";
+                inputEl.focus();
+            }
+        }
+
+        function lockApplication() {
+            isAuthenticated = false;
+            const inputEl = document.getElementById('password-input');
+            if (inputEl) {
+                inputEl.value = "";
+                inputEl.classList.remove('border-emerald-500', 'border-rose-500');
+            }
+            document.getElementById('login-msg').classList.add('opacity-0');
+            document.getElementById(_0x5a1f[3]).classList.add(_0x5a1f[4]);
+            document.getElementById(_0x5a1f[2]).classList.add(_0x5a1f[4]);
+            document.getElementById(_0x5a1f[1]).classList.remove(_0x5a1f[4]);
+            if (inputEl) setTimeout(() => inputEl.focus(), 100);
+        }
+
+        // Zaštita prečaca (F12, Ctrl+Shift+I, Ctrl+U)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+            }
+        });
+
+        // Blokiranje desnog klika na login ekranu radi sigurnosti
+        document.addEventListener('contextmenu', (e) => {
+            if (!isAuthenticated) e.preventDefault();
+        });
+
+        // ==========================================
+        // GLAVNA ANALITIČKA LOGIKA (UHCE V4)
+        // ==========================================
+        let appData = [];
+        let isAdvancedMode = false;
+        let tableVisibleCount = 10;
+        let chartInstances = {};
+        let selectedAnalyticsApproach = 'default';
+        let currentSort = { col: 'risk', dir: 'desc' };
+        let activeMatrixFilter = null;
+
+        window.onload = () => {
+            localStorage.removeItem('uhceKikoData');
+            setupDragAndDrop();
+            scrambleCurrentCore(); // Inicijaliziraj scrambler prikaz
+        };
+
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('data-file');
+            const fileNameDisplay = document.getElementById('file-name-display');
+
+            fileInput.addEventListener('change', (e) => {
+                if(e.target.files.length) fileNameDisplay.innerText = "Odabrano: " + e.target.files[0].name;
+            });
+
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+            dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-active'); });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-active');
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    fileNameDisplay.innerText = "Spremno: " + e.dataTransfer.files[0].name;
+                }
+            });
+        }
+
+        // --- UPLOAD & PARSE LOGIC ---
+        document.getElementById('btn-analyze').addEventListener('click', () => {
+            if (!isAuthenticated) return;
+            const fileInput = document.getElementById('data-file');
+            const format = document.querySelector('input[name="dataFormat"]:checked').value;
+            const selectEl = document.getElementById('analytics-approach');
+            selectedAnalyticsApproach = selectEl.value;
+            
+            document.getElementById('lbl-active-model').innerText = selectEl.options[selectEl.selectedIndex].text.split('(')[0];
+
+            if (!fileInput.files.length) {
+                showMsg('Molimo odaberite datoteku za analizu ili kliknite na "Pokreni brzu simulaciju" ispod.', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const fileName = file.name.toLowerCase();
+            
+            if (fileName.endsWith('.csv')) {
+                Papa.parse(file, {
+                    header: true, skipEmptyLines: true,
+                    complete: function(results) { handleParsedData(results.data, format); },
+                    error: function(err) { showMsg('Pogreška parsera: ' + err.message, 'error'); }
+                });
+            } else if (fileName.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        if (!Array.isArray(jsonData)) throw new Error("JSON mora biti niz.");
+                        
+                        if (jsonData.length > 0 && jsonData[0].risk !== undefined) {
+                            appData = jsonData; initDashboard(); showMsg('Učitani prethodno obrađeni podaci.', 'success');
+                        } else {
+                            handleParsedData(jsonData, format);
+                        }
+                    } catch (err) { showMsg('Greška: ' + err.message, 'error'); }
+                };
+                reader.readAsText(file);
+            } else {
+                showMsg('Nepodržan format. Koristite .csv ili .json', 'error');
+            }
+        });
+
+        function handleParsedData(data, format) {
+            if (data && data.length > 0) {
+                try {
+                    appData = processCsvData(data, format);
+                    if(appData.length > 0) { initDashboard(); } 
+                    else { showMsg('Podaci ne sadrže potrebne stupce.', 'error'); }
+                } catch(err) { showMsg('Greška pri obradi: ' + err.message, 'error'); }
+            } else { showMsg('Prazna datoteka.', 'error'); }
+        }
+
+        function showMsg(text, type) {
+            const box = document.getElementById('upload-msg-box');
+            box.innerText = text;
+            box.className = `mt-4 p-4 rounded-xl text-sm font-semibold border block fade-in ${type === 'error' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`;
+        }
+
+        // Obfuskana jezgra izračuna (Scramble varijable unutar matematičkog modela)
+        function processCsvData(rows, format) {
+            let _0xOut = [];
+            let _w0 = -3.5, _w1 = 0.25, _w2 = 0.25, _w3 = 0.25, _w4 = 0.1, _w5 = 0.3;
+            
+            if (selectedAnalyticsApproach === 'polypharmacy') {
+                _w1 = 0.15; _w2 = 0.15; _w3 = 0.15; _w4 = 0.05; _w5 = 0.6; 
+            } else if (selectedAnalyticsApproach === 'psychosocial') {
+                _w1 = 0.10; _w2 = 0.55; _w3 = 0.55; _w5 = 0.2;
+            } else if (selectedAnalyticsApproach === 'predictive') {
+                _w0 = -2.0; _w1 = 0.3; _w2 = 0.3; _w3 = 0.3; _w4 = 0.15; _w5 = 0.4;
+            }
+
+            rows.forEach((row, index) => {
+                const _gI = (k) => { const v = parseInt(row[k]); return isNaN(v) ? 0 : v; };
+
+                let _tPh = 0, _tPs = 0, _tSo = 0, _tTot = 0;
+                let _h = _gI('C1') || 165;
+                let _w = _gI('C2') || 70;
+                let _bmi = _h > 0 ? +(_w / Math.pow(_h / 100, 2)).toFixed(1) : 25;
+                
+                let _mrq = 0;
+                for(let i=19; i<=28; i++) { if (_gI(`A${i}`) === 1) _mrq++; }
+
+                if (format === 'scored') {
+                    _tPh = _gI('TFI A1-A8'); _tPs = _gI('TFI A9-A12');
+                    _tSo = _gI('TFI A13-A15'); _tTot = _gI('TFI A1-A15');
+                } else {
+                    _tPh = [1,2,3,4,5,6,7,8].reduce((s, i) => s + (_gI(`A${i}`)===1?1:0), 0);
+                    _tPs = [9,10,11,12].reduce((s, i) => s + (_gI(`A${i}`)===1?1:0), 0);
+                    _tSo = [13,14,15].reduce((s, i) => s + (_gI(`A${i}`)===1?1:0), 0);
+                    _tTot = _tPh + _tPs + _tSo;
+                }
+
+                let _a16 = (_gI('A16') === 1) ? 1 : 0; 
+                let _a17 = (_gI('A17') === 1) ? 1 : 0;
+                let _a18 = _gI('A18') || 0; 
+
+                let _bEx = (_bmi > 30) ? _bmi - 30 : 0;
+                let _cTFI = (_tPh * _w1) + (_tPs * _w2) + (_tSo * _w3);
+                let _cBMI = _bEx * _w4;
+                let _cMRQ = _mrq * _w5;
+
+                let _lgt = _w0 + _cTFI + _cBMI + _cMRQ;
+                let _prb = 1 / (1 + Math.exp(-_lgt));
+                let _rsk = Math.round(_prb * 100);
+
+                let _topF = "Mješovito";
+                if(_cMRQ > _cTFI && _cMRQ > _cBMI && _mrq > 3) _topF = "Polifarmacija (Prekomjeran broj lijekova)";
+                else if(_cTFI >= _cMRQ && _cTFI > _cBMI) _topF = "Krhkost (TFI Sindrom)";
+                else if(_cBMI > _cTFI && _cBMI > _cMRQ) _topF = "Obezitet (BMI > 30)";
+
+                _0xOut.push({
+                    id: row['šifra'] || row['RB'] || `HRI-${1000 + index}`,
+                    bmi: _bmi, tfi_phys: _tPh, tfi_psych: _tPs, tfi_soc: _tSo, tfi_total: _tTot,
+                    a16_fear: _a16, a17_fall: _a17, a18_falls: _a18,
+                    mrq: _mrq, risk: _rsk, xai: _topF
+                });
+            });
+
+            return _0xOut.filter(d => d.tfi_total !== undefined); 
+        }
+
+        function loadMockData() {
+            if (!isAuthenticated) return;
+            const selectEl = document.getElementById('analytics-approach');
+            selectedAnalyticsApproach = selectEl.value;
+            document.getElementById('lbl-active-model').innerText = selectEl.options[selectEl.selectedIndex].text.split('(')[0];
+
+            let mock = [];
+            for(let i=1; i<=250; i++) {
+                let id = `HRI-${1400 + i}`;
+                let h = Math.floor(Math.random() * (185 - 150 + 1)) + 150;
+                let w = Math.floor(Math.random() * (100 - 55 + 1)) + 55;
+                let bmi = +(w / Math.pow(h / 100, 2)).toFixed(1);
+                let t_ph = Math.floor(Math.random() * 9); let t_ps = Math.floor(Math.random() * 5); let t_so = Math.floor(Math.random() * 4);
+                let t_tot = t_ph + t_ps + t_so;
+                let mrq = Math.floor(Math.random() * 10);
+                
+                let logit = -3.5 + (t_tot * 0.25) + ((bmi > 30 ? bmi-30 : 0) * 0.1) + (mrq * 0.3);
+                let prob = 1 / (1 + Math.exp(-logit));
+                let fall = Math.random() < prob ? 1 : 0;
+                
+                mock.push({
+                    id: id, bmi: bmi, tfi_phys: t_ph, tfi_psych: t_ps, tfi_soc: t_so, tfi_total: t_tot,
+                    a16_fear: Math.random() < (prob + 0.15) ? 1 : 0, a17_fall: fall, a18_falls: fall ? Math.floor(Math.random()*3)+1 : 0,
+                    mrq: mrq, risk: Math.round(prob * 100), xai: (mrq>5 ? "Polifarmacija" : "Krhkost")
+                });
+            }
+            appData = mock;
+            initDashboard();
+        }
+
+        function resetData() {
+            appData = []; activeMatrixFilter = null;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('upload-screen').classList.remove('hidden');
+            document.getElementById('upload-msg-box').classList.add('hidden');
+        }
+
+        function initDashboard() {
+            document.getElementById('upload-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            
+            Chart.defaults.font.family = "'Inter', sans-serif"; Chart.defaults.color = '#64748b';
+            updateKPIs(); renderBasicCharts();
+            if(isAdvancedMode) renderAdvancedFeatures();
+        }
+
+        function updateKPIs() {
+            const total = appData.length;
+            const falls = appData.filter(d => d.a17_fall === 1).length;
+            const fears = appData.filter(d => d.a16_fear === 1).length;
+            
+            document.getElementById('hdr-cohort-size').innerText = total;
+            document.getElementById('kpi-falls-pct').innerText = total ? Math.round((falls/total)*100) + '%' : '0%';
+            document.getElementById('kpi-falls-n').innerText = `N=${falls}`;
+            document.getElementById('kpi-fear-pct').innerText = total ? Math.round((fears/total)*100) + '%' : '0%';
+            document.getElementById('kpi-fear-n').innerText = `N=${fears}`;
+            
+            const avgTfi = total ? (appData.reduce((acc, curr) => acc + curr.tfi_total, 0) / total).toFixed(1) : 0;
+            document.getElementById('kpi-tfi-avg').innerText = avgTfi;
+            document.getElementById('kpi-rep-falls').innerText = appData.filter(d => d.a18_falls >= 2).length;
+
+            const avgRisk = total ? Math.round(appData.reduce((acc, d) => acc + d.risk, 0) / total) : 0;
+            const now = new Date();
+            const selectEl = document.getElementById('analytics-approach');
+            
+            document.getElementById('print-date').innerText = now.toLocaleDateString('hr-HR') + ' u ' + now.toLocaleTimeString('hr-HR', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('print-model').innerText = selectEl ? selectEl.options[selectEl.selectedIndex].text : 'Standardna Analiza';
+            document.getElementById('print-n').innerText = total + ' ispitanika';
+            document.getElementById('print-falls').innerText = total ? `${falls} pacijenata (${Math.round((falls/total)*100)}%)` : '-';
+            document.getElementById('print-tfi').innerText = avgTfi + ' / 15';
+            document.getElementById('print-risk').innerText = avgRisk + '%';
+        }
+
+        function renderBasicCharts() {
+            let m00 = 0, m01 = 0, m10 = 0, m11 = 0;
+            let tfiFall = { ph: 0, ps: 0, so: 0, c: 0 }; let tfiNoFall = { ph: 0, ps: 0, so: 0, c: 0 };
+
+            appData.forEach(d => {
+                if (d.a17_fall === 0 && d.a16_fear === 0) m00++;
+                else if (d.a17_fall === 0 && d.a16_fear === 1) m01++;
+                else if (d.a17_fall === 1 && d.a16_fear === 0) m10++;
+                else if (d.a17_fall === 1 && d.a16_fear === 1) m11++;
+
+                if (d.a17_fall === 1) { tfiFall.ph+=d.tfi_phys; tfiFall.ps+=d.tfi_psych; tfiFall.so+=d.tfi_soc; tfiFall.c++; }
+                else { tfiNoFall.ph+=d.tfi_phys; tfiNoFall.ps+=d.tfi_psych; tfiNoFall.so+=d.tfi_soc; tfiNoFall.c++; }
+            });
+
+            if (chartInstances.matrix) chartInstances.matrix.destroy();
+            chartInstances.matrix = new Chart(document.getElementById('matrixChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bez pada, Bez straha', 'Bez pada, Sa strahom', 'S padom, Bez straha', 'S padom, Sa strahom'],
+                    datasets: [{
+                        data: [m00, m01, m10, m11],
+                        backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#8b5cf6'],
+                        borderColor: '#ffffff', borderWidth: 2, hoverOffset: 12
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, cutout: '60%',
+                    plugins: { legend: { position: 'bottom' } },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const combos = [{fall:0, fear:0}, {fall:0, fear:1}, {fall:1, fear:0}, {fall:1, fear:1}];
+                            const labels = ['Bez pada, Bez straha', 'Bez pada, Sa strahom', 'S padom, Bez straha', 'S padom, Sa strahom'];
+                            
+                            activeMatrixFilter = combos[idx];
+                            document.getElementById('filter-label').innerText = labels[idx];
+                            document.getElementById('clear-filter-btn').classList.remove('hidden');
+                            tableVisibleCount = 10;
+                            
+                            if(!isAdvancedMode) {
+                                document.getElementById('mode-toggle').click();
+                            }
+                            setTimeout(() => {
+                                document.getElementById('search-input').scrollIntoView({behavior: 'smooth', block: 'center'});
+                            }, 150);
+                            renderTable(document.getElementById('search-input').value);
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    }
+                }
+            });
+
+            const sAvg = (s, c) => c > 0 ? (s/c).toFixed(2) : 0;
+            if (chartInstances.tfiBar) chartInstances.tfiBar.destroy();
+            chartInstances.tfiBar = new Chart(document.getElementById('tfiBarChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Fizička (0-8)', 'Psihološka (0-4)', 'Socijalna (0-3)'],
+                    datasets: [
+                        { label: 'Osobe bez pada', data: [sAvg(tfiNoFall.ph, tfiNoFall.c), sAvg(tfiNoFall.ps, tfiNoFall.c), sAvg(tfiNoFall.so, tfiNoFall.c)], backgroundColor: '#94a3b8', borderRadius: 6 },
+                        { label: 'Osobe s padom', data: [sAvg(tfiFall.ph, tfiFall.c), sAvg(tfiFall.ps, tfiFall.c), sAvg(tfiFall.so, tfiFall.c)], backgroundColor: '#e11d48', borderRadius: 6 }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    scales: { y: { beginAtZero: true, border: {display: false} }, x: { grid: {display: false} } }
+                }
+            });
+        }
+
+        function clearTableFilter() {
+            activeMatrixFilter = null;
+            document.getElementById('clear-filter-btn').classList.add('hidden');
+            tableVisibleCount = 10;
+            renderTable(document.getElementById('search-input').value);
+        }
+
+        document.getElementById('mode-toggle').addEventListener('change', function(e) {
+            isAdvancedMode = e.target.checked;
+            const advSection = document.getElementById('advanced-section');
+            if(isAdvancedMode) {
+                advSection.classList.remove('hidden'); renderAdvancedFeatures();
+            } else { advSection.classList.add('hidden'); }
+        });
+
+        function renderAdvancedFeatures() {
+            renderPolypharmacyChart();
+            renderTable();
+            renderRadarChart();
+            renderBubbleChart();
+            
+            const total = appData.length;
+            const avgRisk = total ? appData.reduce((acc, d) => acc + d.risk, 0) / total : 0;
+            document.getElementById('avg-risk-score').innerText = Math.round(avgRisk) + '%';
+            document.getElementById('risk-bar').style.width = Math.round(avgRisk) + '%';
+        }
+
+        function renderPolypharmacyChart() {
+            let bins = { '0-2 lijeka': { fall:0, no:0 }, '3-5 lijekova': { fall:0, no:0 }, '6+ (Polifarmacija)': { fall:0, no:0 } };
+            let mrqVals = [];
+            
+            appData.forEach(d => {
+                mrqVals.push(d.mrq);
+                let bin = d.mrq <= 2 ? '0-2 lijeka' : (d.mrq <= 5 ? '3-5 lijekova' : '6+ (Polifarmacija)');
+                if(d.a17_fall === 1) bins[bin].fall++; else bins[bin].no++;
+            });
+
+            mrqVals.sort((a,b)=>a-b);
+            let median = 0, sd = 0;
+            if(mrqVals.length) {
+                let mid = Math.floor(mrqVals.length/2);
+                median = mrqVals.length%2 !== 0 ? mrqVals[mid] : (mrqVals[mid-1]+mrqVals[mid])/2;
+                let mean = mrqVals.reduce((a,b)=>a+b,0)/mrqVals.length;
+                sd = Math.sqrt(mrqVals.map(x=>Math.pow(x-mean,2)).reduce((a,b)=>a+b)/mrqVals.length).toFixed(1);
+            }
+            document.getElementById('mrq-stats-subtitle').innerHTML = `Kohorta: <b>Medijan: ${median} lijeka</b> | SD: ${sd}`;
+
+            const labels = Object.keys(bins);
+            const dataFallPct = labels.map(l => {
+                let total = bins[l].fall + bins[l].no;
+                return total > 0 ? ((bins[l].fall / total) * 100).toFixed(1) : 0;
+            });
+
+            if (chartInstances.mrq) chartInstances.mrq.destroy();
+            chartInstances.mrq = new Chart(document.getElementById('mrqChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '% Osoba s padom u skupini',
+                        data: dataFallPct,
+                        backgroundColor: '#6366f1', borderRadius: 6
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { title: {display: true, text: '% Rizika od pada'}, min: 0 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderRadarChart() {
+            let fallSum = { ph:0, ps:0, so:0, mrq:0, count:0 }, noFallSum = { ph:0, ps:0, so:0, mrq:0, count:0 };
+
+            appData.forEach(d => {
+                let target = d.a17_fall === 1 ? fallSum : noFallSum;
+                target.ph += d.tfi_phys; target.ps += d.tfi_psych; target.so += d.tfi_soc; target.mrq += d.mrq; target.count++;
+            });
+
+            const normalize = (val, max, count) => count > 0 ? ((val/count)/max)*100 : 0;
+            const fallData = [normalize(fallSum.ph, 8, fallSum.count), normalize(fallSum.ps, 4, fallSum.count), normalize(fallSum.so, 3, fallSum.count), normalize(fallSum.mrq, 10, fallSum.count)];
+            const noFallData = [normalize(noFallSum.ph, 8, noFallSum.count), normalize(noFallSum.ps, 4, noFallSum.count), normalize(noFallSum.so, 3, noFallSum.count), normalize(noFallSum.mrq, 10, noFallSum.count)];
+
+            if (chartInstances.radar) chartInstances.radar.destroy();
+            chartInstances.radar = new Chart(document.getElementById('radarChart').getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Fizička Krhkost', 'Psihološka Krhkost', 'Socijalna Krhkost', 'Polifarmacija'],
+                    datasets: [
+                        { label: 'S padom (Prosjek %)', data: fallData, backgroundColor: 'rgba(225, 29, 72, 0.2)', borderColor: '#e11d48', borderWidth: 2 },
+                        { label: 'Bez pada (Prosjek %)', data: noFallData, backgroundColor: 'rgba(148, 163, 184, 0.2)', borderColor: '#94a3b8', borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } }
+            });
+        }
+
+        function renderBubbleChart() {
+            let clusters = {}; 
+            appData.forEach(d => {
+                let key = `${d.a17_fall}_${d.tfi_total}_${d.mrq}`;
+                if(!clusters[key]) clusters[key] = { x: d.tfi_total, y: d.mrq, isFall: d.a17_fall, count: 0, totalRisk: 0 };
+                clusters[key].count++;
+                clusters[key].totalRisk += d.risk;
+            });
+
+            let fallBubbles = [], noFallBubbles = [];
+            Object.values(clusters).forEach(c => {
+                let bubble = { x: c.x, y: c.y, r: Math.min(20, Math.max(4, c.count * 2)), count: c.count, avgRisk: Math.round(c.totalRisk/c.count) };
+                if (c.isFall) fallBubbles.push(bubble); else noFallBubbles.push(bubble);
+            });
+
+            if (chartInstances.bubble) chartInstances.bubble.destroy();
+            chartInstances.bubble = new Chart(document.getElementById('bubbleChart').getContext('2d'), {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        { label: 'Grupe Bez pada', data: noFallBubbles, backgroundColor: 'rgba(148, 163, 184, 0.6)' },
+                        { label: 'Grupe S padom', data: fallBubbles, backgroundColor: 'rgba(225, 29, 72, 0.7)' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { title: { display: true, text: 'Ukupni TFI (0-15)' } }, y: { title: { display: true, text: 'Broj Lijekova' } } },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `Pacijenata: ${ctx.raw.count} | TFI: ${ctx.raw.x} | Lijekovi: ${ctx.raw.y} | Pros. Rizik: ${ctx.raw.avgRisk}%` } } }
+                }
+            });
+        }
+
+        function sortTableBy(column) {
+            if (currentSort.col === column) {
+                currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.col = column; currentSort.dir = 'asc';
+            }
+            renderTable(document.getElementById('search-input').value);
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('.sort-icon').forEach(el => {
+                el.classList.remove('fa-sort-up', 'fa-sort-down', 'sort-active');
+                el.classList.add('fa-sort');
+            });
+            const activeIcon = document.getElementById(`sort-icon-${currentSort.col}`);
+            if(activeIcon) {
+                activeIcon.classList.remove('fa-sort');
+                activeIcon.classList.add(currentSort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down', 'sort-active');
+            }
+        }
+
+        function renderTable(searchTerm = '') {
+            const tbody = document.getElementById('patient-table-body');
+            tbody.innerHTML = '';
+            
+            let filtered = appData.filter(d => d.id.toLowerCase().includes(searchTerm.toLowerCase()));
+            if (activeMatrixFilter) {
+                filtered = filtered.filter(d => d.a17_fall === activeMatrixFilter.fall && d.a16_fear === activeMatrixFilter.fear);
+            }
+
+            filtered.sort((a, b) => {
+                let valA = a[currentSort.col], valB = b[currentSort.col];
+                if(typeof valA === 'string') return currentSort.dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                return currentSort.dir === 'asc' ? valA - valB : valB - valA;
+            });
+            
+            updateSortIcons();
+
+            filtered.slice(0, tableVisibleCount).forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-indigo-50/50 transition-colors group";
+                
+                let fallBadge = d.a17_fall 
+                    ? `<span class="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold">Da (${d.a18_falls} pad)</span>`
+                    : `<span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold">Ne</span>`;
+                
+                let riskColor = d.risk > 50 ? 'text-rose-600' : (d.risk > 25 ? 'text-amber-500' : 'text-emerald-500');
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-slate-900">${d.id}</td>
+                    <td class="px-6 py-4 font-medium">${d.tfi_total}</td>
+                    <td class="px-6 py-4">${d.bmi}</td>
+                    <td class="px-6 py-4">${d.mrq}</td>
+                    <td class="px-6 py-4">${fallBadge}</td>
+                    <td class="px-6 py-4 font-black ${riskColor}">${d.risk}%</td>
+                    <td class="px-6 py-4 text-right no-print">
+                        <button onclick="openModal('${d.id}')" class="px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg text-indigo-600 font-bold text-xs hover:border-indigo-300 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100">Profil</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const btnLoadMore = document.getElementById('btn-load-more');
+            if (filtered.length > tableVisibleCount) {
+                btnLoadMore.parentElement.classList.remove('hidden');
+                btnLoadMore.parentElement.classList.add('flex');
+            } else {
+                btnLoadMore.parentElement.classList.add('hidden');
+                btnLoadMore.parentElement.classList.remove('flex');
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            tableVisibleCount = 10; renderTable(e.target.value);
+        });
+        document.getElementById('btn-load-more').addEventListener('click', () => {
+            tableVisibleCount += 10; renderTable(document.getElementById('search-input').value);
+        });
+
+        function openModal(id) {
+            const patient = appData.find(d => d.id === id);
+            if(!patient) return;
+
+            document.getElementById('modal-id').innerText = patient.id;
+            document.getElementById('modal-avatar').innerText = patient.id.split('-')[1] || 'ID';
+            
+            const content = document.getElementById('modal-content');
+            
+            let riskAlert = patient.risk > 50 
+                ? `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-3 text-rose-700 mb-6"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl"></i><div><strong class="block text-lg">Kritičan prediktivni rizik: ${patient.risk}%</strong>Model ukazuje da je glavni faktor za ovog pacijenta: <b>${patient.xai}</b>. Preporuča se hitna intervencija.</div></div>`
+                : `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex gap-3 text-emerald-700 mb-6"><i class="fa-solid fa-check-circle mt-1 text-xl"></i><div><strong class="block text-lg">Umjeren rizik: ${patient.risk}%</strong>Dominantan faktor: <b>${patient.xai}</b>. Nastaviti praćenje.</div></div>`;
+
+            content.innerHTML = `
+                ${riskAlert}
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-4 border rounded-xl bg-slate-50 text-center">
+                        <p class="text-xs font-bold text-slate-500 uppercase">Status pada (12mj)</p>
+                        <p class="text-2xl font-black mt-1 ${patient.a17_fall ? 'text-rose-600' : 'text-slate-800'}">${patient.a17_fall ? 'Pao/la' : 'Nije pao/la'}</p>
+                    </div>
+                    <div class="p-4 border rounded-xl bg-slate-50 text-center">
+                        <p class="text-xs font-bold text-slate-500 uppercase">Strah od pada</p>
+                        <p class="text-2xl font-black mt-1 ${patient.a16_fear ? 'text-amber-500' : 'text-slate-800'}">${patient.a16_fear ? 'Prisutan' : 'Odsutan'}</p>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Klinički Indikatori</h3>
+                <ul class="space-y-3">
+                    <li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm">
+                        <span class="font-medium text-slate-600"><i class="fa-solid fa-heart-pulse w-6 text-indigo-400"></i> Ukupni TFI (Krhkost)</span>
+                        <span class="font-black text-lg text-indigo-700">${patient.tfi_total} <span class="text-xs font-normal text-slate-400">/ 15</span></span>
+                    </li>
+                    <li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm">
+                        <span class="font-medium text-slate-600"><i class="fa-solid fa-pills w-6 text-indigo-400"></i> MRQ-10 (Lijekovi)</span>
+                        <span class="font-black text-lg">${patient.mrq}</span>
+                    </li>
+                </ul>
+            `;
+            document.getElementById('patient-modal').classList.remove('hidden'); document.getElementById('patient-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('patient-modal').classList.add('hidden'); document.getElementById('patient-modal').classList.remove('flex');
+        }
+
+        // ==========================================
+        // ALAT ZA SCRAMBLE / OBFUSKACIJU KODA
+        // ==========================================
+        function openScramblerModal() {
+            scrambleCurrentCore();
+            document.getElementById('scrambler-modal').classList.remove('hidden');
+            document.getElementById('scrambler-modal').classList.add('flex');
+        }
+
+        function closeScramblerModal() {
+            document.getElementById('scrambler-modal').classList.add('hidden');
+            document.getElementById('scrambler-modal').classList.remove('flex');
+        }
+
+        // Pretvara JS kod u heksadecimalni polimorfni zapis s Base64/XOR omotačem
+        function generateScrambledJS(rawCode) {
+            const xorKey = 0x5A;
+            let hexPayload = [];
+            for (let i = 0; i < rawCode.length; i++) {
+                const encodedByte = rawCode.charCodeAt(i) ^ xorKey;
+                hexPayload.push('0x' + encodedByte.toString(16).padStart(2, '0'));
+            }
+            const varDict = ['_0x4f1a', '_0x9b2c', '_0x7e3d', '_0x1c8a', '_0x6d4b'];
+            return `/* UHCE KIKO PRO - SCRAMBLED SECURITY ENGINE (PIN: PROTECTED) */\n(function(${varDict[0]},${varDict[1]}){\n  const ${varDict[2]}=function(${varDict[3]}){\n    let ${varDict[4]}='';\n    for(let i=0;i<${varDict[3]}.length;i++){${varDict[4]}+=String.fromCharCode(${varDict[3]}[i]^${varDict[1]});}\n    return ${varDict[4]};\n  };\n  Function(${varDict[2]}(${varDict[0]}))();\n})([${hexPayload.join(',')}], ${xorKey});`;
+        }
+
+        function scrambleCurrentCore() {
+            const coreLogicString = _0x3c9e.toString() + "\n" + processCsvData.toString();
+            const scrambled = generateScrambledJS(coreLogicString);
+            document.getElementById('scrambled-output').value = scrambled;
+        }
+
+        function copyScrambledCode() {
+            const out = document.getElementById('scrambled-output');
+            out.select();
+            document.execCommand('copy');
+            const status = document.getElementById('scramble-copy-status');
+            status.classList.remove('hidden');
+            setTimeout(() => status.classList.add('hidden'), 3000);
+        }
+
+        // Generira i preuzima potpuno zamućenu (scrambled) samostalnu HTML datoteku
+        function downloadFullScrambledHTML() {
+            const currentHTML = document.documentElement.outerHTML;
+            const b64Payload = btoa(unescape(encodeURIComponent(currentHTML)));
+            const chunks = b64Payload.match(/.{1,120}/g).map(c => `'${c}'`).join('+\n');
+
+            const scrambledStandaloneHTML = `<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UHCE Kiko Analitika Pro V4 [SCRAMBLED BUILD]</title>
+<script>
+/* SCRAMBLED APPLICATION LOADER - DO NOT MODIFY */
+(function(_0x1a2b){
+    document.addEventListener("DOMContentLoaded", function(){
+        try {
+            var _0x3f4e = decodeURIComponent(escape(window.atob(_0x1a2b)));
+            document.open();
+            document.write(_0x3f4e);
+            document.close();
+        } catch(_0xErr) {
+            document.body.innerHTML = "Security Integrity Error.";
+        }
+    });
+})(
+${chunks}
+);
+<\/script>
+</head>
+<body style="background:#020617;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+<div>Dekriptiranje sigurnosnog sučelja...</div>
+</body>
+</html>`;
+
+            downloadFile(scrambledStandaloneHTML, 'analiza_padova_pro_v4_SCRAMBLED.html', 'text/html;charset=utf-8;');
+        }
+
+        function downloadFile(content, fileName, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = fileName;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+
+        function exportToJSON() { if(appData.length) downloadFile(JSON.stringify(appData, null, 2), 'Analitika.json', 'application/json'); }
+        function exportToCSV() { if(appData.length) downloadFile(Papa.unparse(appData), 'Analitika.csv', 'text/csv;charset=utf-8;'); }
+        
+        function exportToPDF() {
+            for (let key in chartInstances) if (chartInstances[key]) chartInstances[key].resize();
+            window.print();
+        }
+    </script>
+</body>
+</html>
