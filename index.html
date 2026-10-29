@@ -15,9 +15,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #e2e8f0; color: #0f172a; }
         .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Statistički paket - tehnički stilovi */
+        .stat-panel { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); overflow: hidden; }
+        .stat-panel-header { background: #f1f5f9; border-bottom: 1px solid #cbd5e1; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.04em; }
+        .stat-grid-table th, .stat-grid-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .stat-grid-table th:last-child, .stat-grid-table td:last-child { border-right: none; }
+        .stat-toolbar-btn { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px 10px; font-size: 0.75rem; font-weight: 600; color: #334155; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+        .stat-toolbar-btn:hover { background: #f8fafc; border-color: #94a3b8; color: #0f172a; }
         
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
         .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -64,11 +72,11 @@
         /* PRINT STYLES */
         @media print {
             body { background-color: #ffffff !important; }
-            #login-screen, #upload-screen, #report-header, #patient-modal, .no-print { display: none !important; }
+            #login-screen, #upload-screen, #report-header, #stat-menubar, #stat-statusbar, #patient-modal, .no-print { display: none !important; }
             .print-summary { display: block !important; margin-bottom: 2.5rem; page-break-after: avoid; }
             #dashboard-screen { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
-            .bg-white, .bg-gradient-to-br { 
-                border: 1px solid #e2e8f0 !important; 
+            .bg-white, .bg-gradient-to-br, .stat-panel { 
+                border: 1px solid #cbd5e1 !important; 
                 box-shadow: none !important; 
                 page-break-inside: avoid; 
                 break-inside: avoid;
@@ -84,45 +92,53 @@
     <!-- ==========================================
          1. EKRAN ZA PRIJAVU (LOGIN - 1111)
          ========================================== -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden">
-        <!-- Dekorativna pozadina -->
-        <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 overflow-hidden">
+        <!-- Mrežna tehnička pozadina -->
+        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#94a3b8 1px, transparent 1px); background-size: 20px 20px;"></div>
         
-        <div id="login-card" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative z-10 slide-up">
-            <!-- Status badge -->
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800/60 text-indigo-300 text-xs font-bold mb-6">
-                <i class="fa-solid fa-chart-Simple text-indigo-400"></i> UHCE ANALITIKA PRO
-            </div>
-
-            <div class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 mx-auto mb-4">
-                <i class="fa-solid fa-key text-2xl"></i>
-            </div>
-
-            <h1 class="text-2xl font-black text-white tracking-tight">Prijava u sustav</h1>
-            <p class="text-slate-400 text-sm mt-1 mb-6">Unesite šifru za nastavak na izračun i simulaciju</p>
-
-            <!-- Tekstualno polje za unos šifre -->
-            <form onsubmit="event.preventDefault(); submitPassword();" class="space-y-4 mb-4">
-                <div class="relative">
-                    <input type="password" id="password-input" placeholder="Upišite šifru..." autocomplete="off" autofocus
-                        oninput="if(this.value.trim().length === 4) submitPassword();"
-                        class="w-full px-4 py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-white text-center font-bold text-lg tracking-widest placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all select-text">
+        <div id="login-card" class="bg-slate-950 border border-slate-700 rounded-lg shadow-2xl max-w-md w-full overflow-hidden relative z-10 slide-up">
+            <!-- Zaglavlje prozora u stilu statističkog softvera -->
+            <div class="bg-slate-800 border-b border-slate-700 px-4 py-2.5 flex items-center justify-between text-xs mono text-slate-300">
+                <div class="flex items-center gap-2 font-bold">
+                    <i class="fa-solid fa-square-root-variable text-indigo-400"></i>
+                    <span>UHCE StatEngine v4.0 // Auth</span>
                 </div>
-                <button type="button" onclick="submitPassword()" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2">
-                    <span>Potvrdi i nastavi</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </form>
-
-            <!-- Poruka o grešci ili statusu -->
-            <div id="login-msg" class="h-6 text-xs font-bold text-rose-400 mb-2 transition-all opacity-0">
-                Netočna šifra. Pokušajte ponovno.
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-600 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
+                </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
-                <span>UHCE WebApp</span>
-                <span class="mono text-indigo-400/80">v4.0</span>
+            <div class="p-8 text-center">
+                <div class="w-12 h-12 bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 rounded-md flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-key text-lg"></i>
+                </div>
+
+                <h1 class="text-xl font-bold text-white tracking-tight">Prijava u sustav</h1>
+                <p class="text-slate-400 text-xs mt-1 mb-6">Unesite šifru za nastavak na izračun i simulaciju</p>
+
+                <!-- Tekstualno polje za unos šifre -->
+                <form onsubmit="event.preventDefault(); submitPassword();" class="space-y-3 mb-4">
+                    <div class="relative">
+                        <input type="password" id="password-input" placeholder="Upišite šifru..." autocomplete="off" autofocus
+                            oninput="if(this.value.trim().length === 4) submitPassword();"
+                            class="w-full px-4 py-3 rounded-md bg-slate-900 border border-slate-700 text-white text-center mono font-bold text-base tracking-widest placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all select-text">
+                    </div>
+                    <button type="button" onclick="submitPassword()" class="w-full py-3 rounded-md bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-xs uppercase tracking-wider shadow transition-all flex items-center justify-center gap-2">
+                        <span>Potvrdi i nastavi</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Poruka o grešci ili statusu -->
+                <div id="login-msg" class="h-5 text-xs mono font-bold text-rose-400 mb-2 transition-all opacity-0">
+                    Netočna šifra. Pokušajte ponovno.
+                </div>
+
+                <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] mono text-slate-500">
+                    <span>MODULE: STAT_CORE</span>
+                    <span class="text-indigo-400">BUILD 4.0.2</span>
+                </div>
             </div>
         </div>
     </div>
@@ -131,383 +147,469 @@
          2. EKRAN ZA UVOZ PODATAKA (UPLOAD SCREEN)
          ========================================== -->
     <div id="upload-screen" class="hidden min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 max-w-3xl w-full slide-up">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 shrink-0">
-                        <i class="fa-solid fa-microscope text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">UHCE Kiko Analitika Pro</h1>
-                        <p class="text-slate-500 font-medium text-sm sm:text-base">Analiza</p>
-                    </div>
+        <div class="bg-white rounded-md shadow-lg border border-slate-300 max-w-3xl w-full overflow-hidden slide-up">
+            <!-- Gornja sistemska traka prozora -->
+            <div class="bg-slate-800 text-slate-200 px-5 py-3 flex items-center justify-between border-b border-slate-700">
+                <div class="flex items-center gap-2.5 text-xs mono font-bold tracking-wide">
+                    <i class="fa-solid fa-table-cells text-indigo-400"></i>
+                    <span>UHCE Kiko Analitika Pro — Uvoz podatkovne matrice (Data Import Wizard)</span>
                 </div>
-                <div class="flex items-center gap-2 self-start sm:self-center">
-                    <button onclick="lockApplication()" class="px-3 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200 flex items-center gap-1.5" title="Odjava">
-                        <i class="fa-solid fa-right-from-bracket"></i> Odjava
-                    </button>
-                </div>
+                <button onclick="lockApplication()" class="px-2.5 py-1 bg-slate-700 hover:bg-rose-600 text-slate-200 hover:text-white rounded text-xs font-semibold transition-all flex items-center gap-1.5" title="Odjava">
+                    <i class="fa-solid fa-right-from-bracket"></i> Odjava
+                </button>
             </div>
 
-            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
-                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-file-csv text-indigo-500"></i> Učitaj podatke za simulaciju</h3>
-                
-                <div class="space-y-5">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Struktura podataka u CSV-u:</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <label class="cursor-pointer border-2 border-slate-200 rounded-xl p-4 flex items-start gap-3 hover:border-indigo-300 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50 relative overflow-hidden">
-                                <input type="radio" name="dataFormat" value="raw" class="mt-1 accent-indigo-600" checked>
-                                <div>
-                                    <p class="font-bold text-slate-800 text-sm">Sirovi odgovori (Raw)</p>
-                                    <p class="text-xs text-slate-500 mt-1">Sadrži ocjene 1-5, visinu u C1. Sustav sam računa TFI, ITM i MRQ-10.</p>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer border-2 border-slate-200 rounded-xl p-4 flex items-start gap-3 hover:border-indigo-300 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/50">
-                                <input type="radio" name="dataFormat" value="scored" class="mt-1 accent-indigo-600">
-                                <div>
-                                    <p class="font-bold text-slate-800 text-sm">Bodovani (Scored)</p>
-                                    <p class="text-xs text-slate-500 mt-1">Sadrži zbirne stupce 'TFI A1-A15'.</p>
-                                </div>
-                            </label>
+            <div class="p-6 sm:p-8">
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-square-poll-vertical text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-black text-slate-900 tracking-tight">UHCE Kiko Analitika Pro</h1>
+                            <p class="text-slate-500 font-semibold text-xs mono uppercase tracking-wider">Analiza</p>
                         </div>
                     </div>
+                    <div class="hidden sm:flex items-center gap-2 text-xs mono text-slate-500 bg-slate-100 px-3 py-1.5 rounded border border-slate-200">
+                        <span>ENCODING: UTF-8</span>
+                        <span>|</span>
+                        <span>DELIMITER: AUTO</span>
+                    </div>
+                </div>
 
-                    <!-- Drag and Drop zona -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Odaberite ili prevucite .csv datoteku:</label>
-                        <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-indigo-400 hover:bg-slate-100 transition-all cursor-pointer relative bg-white">
-                            <input type="file" id="data-file" accept=".csv,.json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                            <div class="pointer-events-none">
-                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-indigo-400 mb-3"></i>
-                                <p class="text-sm font-bold text-slate-700" id="file-name-display">Prevucite datoteku ovdje ili kliknite za odabir</p>
-                                <p class="text-xs text-slate-500 mt-1">Podržani formati: CSV, JSON</p>
+                <div class="bg-slate-50 p-5 rounded border border-slate-300 mb-6">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2 border-b border-slate-200 pb-2">
+                        <i class="fa-solid fa-sliders text-indigo-600"></i> 1. Konfiguracija ulazne matrice i varijabli
+                    </div>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Struktura podataka u CSV-u:</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="cursor-pointer border border-slate-300 bg-white rounded p-3.5 flex items-start gap-3 hover:border-indigo-400 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/40 relative">
+                                    <input type="radio" name="dataFormat" value="raw" class="mt-1 accent-indigo-600" checked>
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-xs mono">RAW_DATA (Sirovi odgovori)</p>
+                                        <p class="text-xs text-slate-500 mt-1">Čestice 1-5, antropometrija C1/C2. Automatsko rekodiranje TFI, ITM i MRQ-10.</p>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer border border-slate-300 bg-white rounded p-3.5 flex items-start gap-3 hover:border-indigo-400 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/40">
+                                    <input type="radio" name="dataFormat" value="scored" class="mt-1 accent-indigo-600">
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-xs mono">SCORED_SUM (Bodovani)</p>
+                                        <p class="text-xs text-slate-500 mt-1">Sadrži već izračunate kompozitne varijable 'TFI A1-A15'.</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Drag and Drop zona -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Izvorna datoteka (.csv / .json):</label>
+                            <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded p-6 text-center hover:border-indigo-500 hover:bg-slate-100 transition-all cursor-pointer relative bg-white">
+                                <input type="file" id="data-file" accept=".csv,.json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div class="pointer-events-none">
+                                    <i class="fa-solid fa-file-import text-2xl text-indigo-500 mb-2"></i>
+                                    <p class="text-xs font-bold mono text-slate-700" id="file-name-display">Prevucite datoteku ovdje ili kliknite za odabir</p>
+                                    <p class="text-[11px] text-slate-500 mt-1">Podržani formati: CSV matrica, JSON zapis</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-6 pt-5 border-t border-slate-200">
-                    <label for="analytics-approach" class="block text-sm font-semibold text-slate-700 mb-2">Pristup Analitici (Fokus Modela):</label>
-                    <div class="relative">
-                        <select id="analytics-approach" class="block w-full appearance-none bg-white border border-slate-200 text-slate-700 py-3 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:border-indigo-500 font-medium cursor-pointer">
-                            <option value="default" selected>Standardna UHCE Analiza (Osnovno - Default)</option>
-                            <option value="polypharmacy">Fokus: Polifarmacija i lijekovi (Viša težina MRQ)</option>
-                            <option value="psychosocial">Fokus: Psihosocijalna domena i usamljenost</option>
-                            <option value="predictive">Strogo prediktivni AI model (Visoka osjetljivost)</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                            <i class="fa-solid fa-chevron-down"></i>
+                    <div class="mt-5 pt-4 border-t border-slate-200">
+                        <label for="analytics-approach" class="block text-xs font-bold text-slate-700 uppercase mb-2">2. Specifikacija regresijskog modela (Ponderi varijabli):</label>
+                        <div class="relative">
+                            <select id="analytics-approach" class="block w-full appearance-none bg-white border border-slate-300 text-slate-800 py-2.5 px-3 pr-8 rounded text-xs mono font-semibold leading-tight focus:outline-none focus:border-indigo-600 cursor-pointer">
+                                <option value="default" selected>MODEL_01: Standardna UHCE Analiza (Osnovno - Default)</option>
+                                <option value="polypharmacy">MODEL_02: Fokus Polifarmacija i lijekovi (Viša β težina MRQ)</option>
+                                <option value="psychosocial">MODEL_03: Fokus Psihosocijalna domena i usamljenost</option>
+                                <option value="predictive">MODEL_04: Strogo prediktivni AI model (Visoka osjetljivost)</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
                         </div>
+                        <p class="text-[11px] text-slate-500 mt-1.5 mono"><i class="fa-solid fa-terminal mr-1 text-indigo-500"></i> P(Fall) = 1 / (1 + e^-(β0 + β1·TFI + β2·BMI + β3·MRQ))</p>
                     </div>
-                    <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i> Ovaj odabir dinamički prilagođava algoritme bodovanja u logističkoj regresiji.</p>
+
+                    <div id="upload-msg-box" class="hidden mt-4 p-3 rounded text-xs mono font-semibold border"></div>
+                    
+                    <button id="btn-analyze" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded shadow transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider relative z-20">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Izvrši proceduru (Run Analysis)</span>
+                    </button>
                 </div>
 
-                <div id="upload-msg-box" class="hidden mt-4 p-4 rounded-xl text-sm font-semibold border"></div>
-                
-                <button id="btn-analyze" class="w-full mt-6 bg-slate-900 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group relative z-20">
-                    <span>Inicijaliziraj Analizu</span>
-                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                </button>
-            </div>
-
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
-                <button onclick="loadMockData()" class="text-indigo-600 hover:text-indigo-800 font-bold underline transition-colors flex items-center gap-1.5">
-                    <i class="fa-solid fa-bolt"></i> Pokreni brzu simulaciju (Učitaj pokazni uzorak N=250)
-                </button>
-                <div class="text-slate-400 flex items-center gap-2 text-xs">
-                    <i class="fa-solid fa-check-circle text-emerald-500"></i> Lokalna obrada podataka
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs pt-2 border-t border-slate-200">
+                    <button onclick="loadMockData()" class="text-indigo-700 hover:text-indigo-900 font-bold mono underline transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-database"></i> Učitaj sintetički uzorak (Monte Carlo N=250)
+                    </button>
+                    <div class="text-slate-500 mono flex items-center gap-2 text-[11px]">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: READY (LOCAL_SESSION)
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ==========================================
-         3. GLAVNA NADZORNA PLOČA (DASHBOARD)
+         3. GLAVNA NADZORNA PLOČA (STATISTIČKO SUČELJE)
          ========================================== -->
-    <div id="dashboard-screen" class="hidden max-w-[1400px] mx-auto p-4 md:p-8 space-y-6 slide-up">
+    <div id="dashboard-screen" class="hidden min-h-screen pb-12 slide-up">
         
-        <!-- PRINT ONLY SUMMARY HEADER -->
-        <div id="print-summary" class="print-summary">
-            <h1 class="text-3xl font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-2">Analitičko Izvješće: Odrednice Padova</h1>
-            <p class="text-slate-600 mb-6 text-sm">Generirano: <span id="print-date" class="font-bold"></span> | Pristup/Model: <span id="print-model" class="font-bold text-indigo-700"></span></p>
-            
-            <div class="mb-6">
-                <p class="text-sm text-slate-800 mb-5 leading-relaxed">Ovo izvješće donosi kvantitativni i prediktivni sažetak učitane kohorte osoba starije životne dobi (≥65 god), s naglaskom na sindrom krhkosti, polifarmaciju i posljedični rizik od pada. U nastavku se nalaze detaljni vizualni prikazi i distribucije ključnih pokazatelja unutar obrađenog uzorka.</p>
+        <!-- Gornja sistemska traka statističkog programa (Application Bar) -->
+        <div id="stat-menubar" class="bg-slate-900 text-slate-200 px-4 py-2 border-b border-slate-700 flex flex-wrap items-center justify-between gap-4 text-xs mono no-print sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2 font-bold text-white">
+                    <span class="px-1.5 py-0.5 bg-indigo-600 rounded text-[10px]">UHCE</span>
+                    <span>StatViewer // Output1.spv</span>
+                </div>
+                <div class="hidden md:flex items-center gap-4 text-slate-400 text-[11px]">
+                    <span class="text-slate-200 font-semibold border-b-2 border-indigo-400 pb-0.5">Data & Output</span>
+                    <span>Descriptives</span>
+                    <span>Crosstabs</span>
+                    <span>Logistic Regression</span>
+                    <span>Cluster Plot</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 text-[11px]">
+                <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-emerald-400">
+                    <i class="fa-solid fa-check mr-1"></i>N = <strong id="hdr-cohort-size">0</strong> (Valid: 100%)
+                </span>
+                <span class="hidden sm:inline text-slate-400">Filter: <strong class="text-slate-200">AGE ≥ 65</strong></span>
+            </div>
+        </div>
+
+        <div class="max-w-[1440px] mx-auto p-3 md:p-6 space-y-5">
+
+            <!-- PRINT ONLY SUMMARY HEADER -->
+            <div id="print-summary" class="print-summary">
+                <h1 class="text-3xl font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-2">Analitičko Izvješće: Odrednice Padova</h1>
+                <p class="text-slate-600 mb-6 text-sm">Generirano: <span id="print-date" class="font-bold"></span> | Pristup/Model: <span id="print-model" class="font-bold text-indigo-700"></span></p>
                 
-                <table class="w-full text-left text-sm border-collapse border border-slate-300">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-700">
-                            <th class="border border-slate-300 p-3 w-1/2">Ključni Pokazatelj</th>
-                            <th class="border border-slate-300 p-3 w-1/2">Vrijednost</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Veličina kohorte (N)</td>
-                            <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-n">-</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Iskustvo pada u zadnjih 12 mjeseci</td>
-                            <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-falls">-</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni TFI (Indeks krhkosti 0-15)</td>
-                            <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-tfi">-</td>
-                        </tr>
-                        <tr>
-                            <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni prediktivni AI rizik pada</td>
-                            <td class="border border-slate-300 p-3 font-black text-rose-600" id="print-risk">-</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <header id="report-header" class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div>
-                <div class="flex items-center gap-3 mb-1">
-                    <div class="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-md">
-                        <i class="fa-solid fa-chart-pie text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Analitika Odrednica Padova</h1>
-                        <p class="text-slate-500 font-medium text-sm">Kohorta: <span id="hdr-cohort-size" class="font-bold text-slate-700">0</span> ispitanika ≥65 god.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm cursor-pointer" onclick="document.getElementById('mode-toggle').click()">
-                    <span class="text-sm font-bold text-slate-600 select-none" id="mode-text-basic">Osnovno</span>
-                    <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in pointer-events-none">
-                        <input type="checkbox" name="toggle" id="mode-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none pointer-events-auto cursor-pointer"/>
-                        <label for="mode-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300"></label>
-                    </div>
-                    <span class="text-sm font-bold text-slate-400 select-none" id="mode-text-adv">Napredno <i class="fa-solid fa-rocket text-indigo-500 hidden" id="adv-icon"></i></span>
-                </div>
-
-                <div class="flex items-center gap-2 border-r border-slate-200 pr-3">
-                    <button onclick="exportToJSON()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2 shadow-sm" title="Izvezi u JSON">
-                        <i class="fa-solid fa-file-code text-indigo-500"></i> <span class="hidden sm:inline">JSON</span>
-                    </button>
-                    <button onclick="exportToCSV()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2 shadow-sm" title="Izvezi u CSV">
-                        <i class="fa-solid fa-file-csv text-emerald-500"></i> <span class="hidden sm:inline">CSV</span>
-                    </button>
-                </div>
-
-                <button onclick="exportToPDF()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-print text-rose-400"></i> Ispis / PDF
-                </button>
-                <button onclick="resetData()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2" title="Novi unos">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                </button>
-                <button onclick="lockApplication()" class="px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-sm font-bold transition-all border border-rose-200 flex items-center gap-2" title="Odjava">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Kljucni Pokazatelji (KPI) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-container">
-            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
-                <div class="flex justify-between items-start z-10">
-                    <p class="text-sm font-bold text-slate-500">Iskustvo pada (12mj)</p>
-                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-person-falling"></i></div>
-                </div>
-                <div class="mt-4 z-10 flex items-baseline gap-2">
-                    <h4 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-falls-pct">-</h4>
-                    <span class="text-sm font-bold text-rose-500" id="kpi-falls-n">N=0</span>
-                </div>
-            </div>
-
-            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
-                <div class="flex justify-between items-start z-10">
-                    <p class="text-sm font-bold text-slate-500">Prisutan strah (A16)</p>
-                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-shield-heart"></i></div>
-                </div>
-                <div class="mt-4 z-10 flex items-baseline gap-2">
-                    <h4 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-fear-pct">-</h4>
-                    <span class="text-sm font-bold text-amber-500" id="kpi-fear-n">N=0</span>
-                </div>
-            </div>
-
-            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
-                <div class="flex justify-between items-start z-10">
-                    <p class="text-sm font-bold text-slate-500">Prosječna krhkost (TFI)</p>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-heart-pulse"></i></div>
-                </div>
-                <div class="mt-4 z-10 flex flex-col">
-                    <h4 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-tfi-avg">-</h4>
-                    <p class="text-xs font-semibold text-slate-400 mt-1">Skala 0-15 (Čestice A1-A15)</p>
-                </div>
-            </div>
-
-            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden group border-indigo-100">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
-                <div class="flex justify-between items-start z-10">
-                    <p class="text-sm font-bold text-slate-500">Ponavljani padovi</p>
-                    <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                </div>
-                <div class="mt-4 z-10 flex items-baseline gap-2">
-                    <h4 class="text-4xl font-black text-indigo-700 tracking-tight" id="kpi-rep-falls">-</h4>
-                    <span class="text-sm font-bold text-indigo-400">osoba (≥2 pada)</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Osnovni Grafovi -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="basic-charts-container">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
-                <div class="mb-4">
-                    <h3 class="font-black text-slate-800 text-lg">Matrica: Pad i Strah</h3>
-                    <p class="text-sm text-slate-500 font-medium">Raspodjela. <span class="text-indigo-500 font-bold">Kliknite na odsječak za filtriranje tablice.</span></p>
-                </div>
-                <div class="relative flex-1 min-h-[300px]">
-                    <canvas id="matrixChart"></canvas>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
-                <div class="mb-4">
-                    <h3 class="font-black text-slate-800 text-lg">Krhkost (TFI) po domenama</h3>
-                    <p class="text-sm text-slate-500 font-medium">Usporedba prosjeka: Osobe bez pada vs. Osobe s padom</p>
-                </div>
-                <div class="relative flex-1 min-h-[300px]">
-                    <canvas id="tfiBarChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div id="advanced-section" class="hidden space-y-6">
-            
-            <div class="flex justify-between items-end pb-2 border-b-2 border-indigo-100 mt-8">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-md">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    </div>
-                    <h2 class="text-2xl font-black text-slate-800">Napredna Analitika & Profiliranje</h2>
-                </div>
-                <div class="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
-                    Aktivni model: <span id="lbl-active-model" class="text-indigo-600">Osnovni</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:col-span-2 flex flex-col">
-                    <div class="mb-4 flex justify-between items-start">
-                        <div>
-                            <h3 class="font-black text-slate-800 text-lg">Polifarmacija i Rizik od Pada (MRQ-10)</h3>
-                            <p class="text-sm text-slate-500 font-medium" id="mrq-stats-subtitle">Korelacija broja uzimanih lijekova i učestalosti padova.</p>
-                        </div>
-                        <div class="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-bold border border-rose-100">
-                            A19-A28 Korelacija
-                        </div>
-                    </div>
-                    <div class="relative flex-1 min-h-[250px]">
-                        <canvas id="mrqChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-md p-6 text-white flex flex-col justify-center relative overflow-hidden">
-                    <i class="fa-solid fa-brain absolute -bottom-10 -right-10 text-9xl text-white opacity-5"></i>
-                    <h3 class="font-black text-xl mb-2 text-indigo-200">AI Logističko Predviđanje</h3>
-                    <p class="text-sm text-slate-300 mb-6 font-medium leading-relaxed">Sustav računa % vjerojatnosti pada po pacijentu (TFI + BMI + Polifarmacija) koristeći odabrane parametre (težine).</p>
+                <div class="mb-6">
+                    <p class="text-sm text-slate-800 mb-5 leading-relaxed">Ovo izvješće donosi kvantitativni i prediktivni sažetak učitane kohorte osoba starije životne dobi (≥65 god), s naglaskom na sindrom krhkosti, polifarmaciju i posljedični rizik od pada. U nastavku se nalaze detaljni vizualni prikazi i distribucije ključnih pokazatelja unutar obrađenog uzorka.</p>
                     
-                    <div class="bg-white/10 p-4 rounded-xl border border-white/20 backdrop-blur-sm">
-                        <div class="text-xs font-bold text-indigo-300 uppercase tracking-wide mb-1">Prosječni izračunati rizik kohorte</div>
-                        <div class="flex items-end gap-2">
-                            <span class="text-4xl font-black text-white" id="avg-risk-score">0%</span>
-                            <span class="text-sm font-medium text-slate-300 mb-1">Vjerojatnost</span>
-                        </div>
-                        <div class="w-full bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
-                            <div id="risk-bar" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-full w-0 transition-all duration-1000"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
-                    <div class="mb-4">
-                        <h3 class="font-black text-slate-800 text-lg">Profil Rizika (Spider Dijagram)</h3>
-                        <p class="text-sm text-slate-500 font-medium">Normalizirana usporedba opterećenja (%) po domenama</p>
-                    </div>
-                    <div class="relative flex-1 min-h-[350px]">
-                        <canvas id="radarChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col p-6">
-                    <div class="mb-4">
-                        <h3 class="font-black text-slate-800 text-lg">Klasteriranje: Krhkost vs Lijekovi</h3>
-                        <p class="text-sm text-slate-500 font-medium">Točke predstavljaju grupe pacijenata. Veličina = Broj pacijenata.</p>
-                    </div>
-                    <div class="relative flex-1 min-h-[350px]">
-                        <canvas id="bubbleChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
-                <div class="p-6 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                            Detaljni podaci pacijenata
-                            <button id="clear-filter-btn" class="hidden px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold hover:bg-rose-200 transition-colors" onclick="clearTableFilter()">Poništi Matrix Filter: <span id="filter-label"></span> <i class="fa-solid fa-xmark ml-1"></i></button>
-                        </h3>
-                        <p class="text-sm text-slate-500 mt-1">Pregled zapisa. Kliknite na naslov stupca za sortiranje.</p>
-                    </div>
-                    <div class="relative no-print">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="search-input" placeholder="Pretraži po ID-u..." class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500 w-full sm:w-64">
-                    </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-500">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b border-slate-200">
-                            <tr>
-                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('id')">Šifra (ID) <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-id"></i></th>
-                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('tfi_total')">TFI <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-tfi_total"></i></th>
-                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('bmi')">ITM <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-bmi"></i></th>
-                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('mrq')">Polifarmacija <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-mrq"></i></th>
-                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('a17_fall')">Pad (A17) <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-a17_fall"></i></th>
-                                <th class="px-6 py-4 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('risk')">Prediktivni Rizik <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-risk"></i></th>
-                                <th class="px-6 py-4 text-right no-print">Akcija</th>
+                    <table class="w-full text-left text-sm border-collapse border border-slate-300">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="border border-slate-300 p-3 w-1/2">Ključni Pokazatelj</th>
+                                <th class="border border-slate-300 p-3 w-1/2">Vrijednost</th>
                             </tr>
                         </thead>
-                        <tbody id="patient-table-body">
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Veličina kohorte (N)</td>
+                                <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-n">-</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Iskustvo pada u zadnjih 12 mjeseci</td>
+                                <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-falls">-</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni TFI (Indeks krhkosti 0-15)</td>
+                                <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-tfi">-</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni prediktivni AI rizik pada</td>
+                                <td class="border border-slate-300 p-3 font-black text-rose-600" id="print-risk">-</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-center no-print">
-                    <button id="btn-load-more" class="px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">Prikaži više</button>
+            </div>
+
+            <!-- Radna alatna traka (Toolbar) -->
+            <header id="report-header" class="stat-panel p-3 bg-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-slate-800 text-white rounded flex items-center justify-center shadow-sm shrink-0">
+                        <i class="fa-solid fa-calculator text-sm"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-base font-black text-slate-900 tracking-tight uppercase">Analitika Odrednica Padova</h1>
+                            <span class="text-[11px] mono bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold border border-indigo-200">PROC_FALL_RISK</span>
+                        </div>
+                        <p class="text-slate-500 mono text-xs">Dataset: UHCE_Cohort_65plus.sav | Analitički izlaz</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Prekidač razine prikaza -->
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 bg-white rounded border border-slate-300 cursor-pointer mr-1" onclick="document.getElementById('mode-toggle').click()">
+                        <span class="text-xs font-bold text-slate-700 select-none" id="mode-text-basic">Osnovno</span>
+                        <div class="relative inline-block w-9 align-middle select-none transition duration-200 ease-in pointer-events-none">
+                            <input type="checkbox" name="toggle" id="mode-toggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none pointer-events-auto cursor-pointer"/>
+                            <label for="mode-toggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-300"></label>
+                        </div>
+                        <span class="text-xs font-bold text-indigo-700 select-none" id="mode-text-adv">Napredno (GLM / Data View) <i class="fa-solid fa-rocket text-indigo-500 hidden" id="adv-icon"></i></span>
+                    </div>
+
+                    <button onclick="exportToJSON()" class="stat-toolbar-btn" title="Izvezi u JSON">
+                        <i class="fa-solid fa-file-code text-indigo-600"></i> <span>.JSON</span>
+                    </button>
+                    <button onclick="exportToCSV()" class="stat-toolbar-btn" title="Izvezi u CSV">
+                        <i class="fa-solid fa-file-csv text-emerald-600"></i> <span>.CSV</span>
+                    </button>
+                    <button onclick="exportToPDF()" class="stat-toolbar-btn !bg-slate-800 !text-white !border-slate-800 hover:!bg-slate-700">
+                        <i class="fa-solid fa-print text-rose-400"></i> <span>Ispis / PDF</span>
+                    </button>
+                    <button onclick="resetData()" class="stat-toolbar-btn" title="Novi unos">
+                        <i class="fa-solid fa-folder-open text-amber-600"></i> <span class="hidden sm:inline">Novi unos</span>
+                    </button>
+                    <button onclick="lockApplication()" class="stat-toolbar-btn !text-rose-600 !border-rose-200 !bg-rose-50 hover:!bg-rose-100" title="Odjava">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- SEKCIJA 1: Tablica frekvencija i deskriptivnih pokazatelja (KPI u stilu statističkog sažetka) -->
+            <div class="stat-panel">
+                <div class="stat-panel-header">
+                    <span><i class="fa-solid fa-table-list text-indigo-600 mr-1.5"></i> Tablica 1. Deskriptivni sažetak glavnih varijabli uzorka (Summary Statistics)</span>
+                    <span class="mono text-[11px] text-slate-500">MISSING = 0</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-200" id="kpi-container">
+                    
+                    <div class="p-4 bg-white flex flex-col justify-between">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">VAR: A17_FALL</span>
+                                <p class="text-xs font-bold text-slate-600 mt-1.5">Iskustvo pada (12mj)</p>
+                            </div>
+                            <i class="fa-solid fa-person-falling text-slate-400"></i>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between">
+                            <h4 class="text-2xl font-black mono text-slate-900" id="kpi-falls-pct">-</h4>
+                            <span class="text-xs mono font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded" id="kpi-falls-n">N=0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white flex flex-col justify-between">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] mono font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">VAR: A16_FEAR</span>
+                                <p class="text-xs font-bold text-slate-600 mt-1.5">Prisutan strah (A16)</p>
+                            </div>
+                            <i class="fa-solid fa-shield-heart text-slate-400"></i>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between">
+                            <h4 class="text-2xl font-black mono text-slate-900" id="kpi-fear-pct">-</h4>
+                            <span class="text-xs mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded" id="kpi-fear-n">N=0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white flex flex-col justify-between">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">VAR: TFI_SCORE</span>
+                                <p class="text-xs font-bold text-slate-600 mt-1.5">Prosječna krhkost (Mean)</p>
+                            </div>
+                            <i class="fa-solid fa-heart-pulse text-slate-400"></i>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between">
+                            <h4 class="text-2xl font-black mono text-slate-900" id="kpi-tfi-avg">-</h4>
+                            <span class="text-[11px] mono text-slate-500">Range: 0–15 (A1–A15)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white flex flex-col justify-between">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] mono font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">VAR: A18_REC</span>
+                                <p class="text-xs font-bold text-slate-600 mt-1.5">Ponavljani padovi (≥2)</p>
+                            </div>
+                            <i class="fa-solid fa-triangle-exclamation text-slate-400"></i>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between">
+                            <h4 class="text-2xl font-black mono text-indigo-700" id="kpi-rep-falls">-</h4>
+                            <span class="text-[11px] mono text-slate-500">Subgroup: High-Risk</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+
+            <!-- Osnovni Grafovi u statističkim panelima -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" id="basic-charts-container">
+                <div class="stat-panel flex flex-col">
+                    <div class="stat-panel-header">
+                        <span><i class="fa-solid fa-chart-pie text-indigo-600 mr-1.5"></i> Grafikon 1. Kontingencijska razdioba: Pad (A17) × Strah (A16)</span>
+                        <span class="mono text-[10px] text-indigo-600">INTERACTIVE FILTER</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <p class="text-xs text-slate-500 mb-3">Proporcija ispitanika po kvadrantima. <span class="text-indigo-600 font-semibold">Kliknite na odsječak za filtriranje podatkovne matrice.</span></p>
+                        <div class="relative flex-1 min-h-[300px]">
+                            <canvas id="matrixChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-panel flex flex-col">
+                    <div class="stat-panel-header">
+                        <span><i class="fa-solid fa-chart-column text-indigo-600 mr-1.5"></i> Grafikon 2. Usporedba aritmetičkih sredina TFI domena (Group Means)</span>
+                        <span class="mono text-[10px] text-slate-500">BY A17_FALL (0 vs 1)</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <p class="text-xs text-slate-500 mb-3">Prosječne vrijednosti fizičke, psihološke i socijalne krhkosti: Osobe bez pada vs. Osobe s padom.</p>
+                        <div class="relative flex-1 min-h-[300px]">
+                            <canvas id="tfiBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAPREDNA ANALITIKA I TABLIČNI PRIKAZ (DATA VIEW) -->
+            <div id="advanced-section" class="hidden space-y-5">
+                
+                <div class="stat-panel bg-slate-800 text-white px-4 py-2.5 flex flex-wrap justify-between items-center gap-2 border-slate-700">
+                    <div class="flex items-center gap-2 text-xs mono font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-square-root-variable text-indigo-400"></i>
+                        <span> Blok 2: Multivarijatni modeli, Klasteriranje i Podatkovna matrica (Data View)</span>
+                    </div>
+                    <div class="text-xs mono bg-slate-900 px-2.5 py-1 rounded border border-slate-700 text-slate-300">
+                        Aktivna specifikacija: <span id="lbl-active-model" class="text-indigo-400 font-bold">Osnovni</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    <div class="stat-panel lg:col-span-2 flex flex-col">
+                        <div class="stat-panel-header">
+                            <span><i class="fa-solid fa-capsules text-indigo-600 mr-1.5"></i> Grafikon 3. Polifarmacija i incidencija pada (MRQ-10 Kategorije)</span>
+                            <span class="mono text-[10px] text-rose-600 font-bold">ITEMS: A19–A28</span>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <p class="text-xs text-slate-500 mb-3 mono" id="mrq-stats-subtitle">Korelacija broja uzimanih lijekova i učestalosti padova.</p>
+                            <div class="relative flex-1 min-h-[250px]">
+                                <canvas id="mrqChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-panel bg-slate-900 text-white flex flex-col justify-between relative overflow-hidden border-slate-800">
+                        <div class="bg-slate-950 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-[11px] mono text-indigo-300 font-bold">
+                            <span>LOGISTIC REGRESSION // OUTPUT</span>
+                            <span>LINK=LOGIT</span>
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-center">
+                            <h3 class="font-bold text-base mb-1 text-white">Prediktivni Model Vjerojatnosti</h3>
+                            <p class="text-xs text-slate-400 mb-5 leading-relaxed mono">Procijenjena vjerojatnost P(Y=1) temeljem logističke funkcije nad varijablama TFI, BMI i MRQ-10.</p>
+                            
+                            <div class="bg-slate-800/90 p-4 rounded border border-slate-700">
+                                <div class="text-[10px] mono font-bold text-indigo-300 uppercase tracking-wider mb-1">Mean Predicted Probability (Kohorta)</div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-3xl font-black mono text-white" id="avg-risk-score">0%</span>
+                                    <span class="text-xs mono text-slate-400">E[P(Fall)]</span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 rounded overflow-hidden mt-3 border border-slate-700">
+                                    <div id="risk-bar" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-full w-0 transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <div class="stat-panel flex flex-col">
+                        <div class="stat-panel-header">
+                            <span><i class="fa-solid fa-diagram-project text-indigo-600 mr-1.5"></i> Grafikon 4. Multivarijatni profil opterećenja (Spider Plot)</span>
+                            <span class="mono text-[10px] text-slate-500">SCALE: NORMALIZED (0-100%)</span>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <p class="text-xs text-slate-500 mb-3">Normalizirana usporedba opterećenja (%) po domenama između podskupina.</p>
+                            <div class="relative flex-1 min-h-[340px]">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-panel flex flex-col">
+                        <div class="stat-panel-header">
+                            <span><i class="fa-solid fa-braille text-indigo-600 mr-1.5"></i> Grafikon 5. Bivarijatno klasteriranje: TFI × MRQ-10</span>
+                            <span class="mono text-[10px] text-slate-500">WEIGHTED BUBBLE PLOT</span>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <p class="text-xs text-slate-500 mb-3">Točke predstavljaju grupirane slučajeve istih koordinata. Radijus = frekvencija slučajeva (n).</p>
+                            <div class="relative flex-1 min-h-[340px]">
+                                <canvas id="bubbleChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DATA VIEW TABLICA (Poput SPSS Data Editora) -->
+                <div class="stat-panel overflow-hidden">
+                    <div class="stat-panel-header !py-2.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span><i class="fa-solid fa-table text-indigo-600 mr-1.5"></i> Data View: Pojedinačni slučajevi (Casewise Diagnostics)</span>
+                            <button id="clear-filter-btn" class="hidden px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-300 rounded text-[11px] mono font-bold hover:bg-rose-200 transition-colors" onclick="clearTableFilter()">
+                                FILTER: <span id="filter-label"></span> <i class="fa-solid fa-xmark ml-1"></i>
+                            </button>
+                        </div>
+                        <div class="relative no-print">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="search-input" placeholder="Filter Case ID..." class="pl-8 pr-3 py-1 bg-white border border-slate-300 rounded text-xs mono focus:outline-none focus:border-indigo-600 w-48 sm:w-60">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left text-slate-700 stat-grid-table border-collapse">
+                            <thead class="text-[11px] mono text-slate-700 bg-slate-100 border-b-2 border-slate-300">
+                                <tr>
+                                    <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('id')">CASE_ID <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-id"></i></th>
+                                    <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('tfi_total')">TFI_TOT <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-tfi_total"></i></th>
+                                    <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('bmi')">BMI_VAL <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-bmi"></i></th>
+                                    <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('mrq')">MRQ_10 <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-mrq"></i></th>
+                                    <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('a17_fall')">A17_FALL <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-a17_fall"></i></th>
+                                    <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('risk')">PRED_PROB <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-risk"></i></th>
+                                    <th class="px-4 py-2.5 text-right no-print">INSPECT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patient-table-body" class="mono">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 bg-slate-100 border-t border-slate-300 flex justify-center no-print">
+                        <button id="btn-load-more" class="px-4 py-1.5 text-xs mono font-bold text-indigo-700 bg-white border border-slate-300 rounded hover:bg-indigo-50 transition-colors shadow-sm">Učitaj sljedećih 10 redaka (+10 Cases)</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
+        <!-- Donja statusna traka statističkog paketa -->
+        <footer id="stat-statusbar" class="fixed bottom-0 inset-x-0 bg-slate-800 text-slate-300 border-t border-slate-700 px-4 py-1.5 flex items-center justify-between text-[11px] mono z-30 no-print">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> IBM/UHCE Stat Processor Ready</span>
+                <span class="hidden sm:inline text-slate-400">|</span>
+                <span class="hidden sm:inline text-slate-400">Confidence Interval: 95%</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span>Weights: <strong class="text-indigo-300">ACTIVE</strong></span>
+                <span>Locale: hr_HR.UTF-8</span>
+            </div>
+        </footer>
+
     </div> <!-- END DASHBOARD -->
 
-    <!-- MODAL PROFILA PACIJENTA -->
+    <!-- MODAL PROFILA PACIJENTA (Case Inspector) -->
     <div id="patient-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in no-print">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden slide-up flex flex-col max-h-[90vh]">
-            <div class="px-8 py-6 bg-slate-900 text-white flex justify-between items-center">
+        <div class="bg-white rounded-md shadow-2xl border border-slate-400 w-full max-w-2xl overflow-hidden slide-up flex flex-col max-h-[90vh]">
+            <div class="px-6 py-3.5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-700">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold" id="modal-avatar">ID</div>
+                    <div class="w-8 h-8 rounded bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center mono font-bold text-xs text-indigo-300" id="modal-avatar">ID</div>
                     <div>
-                        <h2 class="text-xl font-black" id="modal-id">HRI-XXX</h2>
-                        <p class="text-indigo-300 text-sm font-medium">Kvalitativni Profil Pacijenta</p>
+                        <h2 class="text-base font-bold mono" id="modal-id">HRI-XXX</h2>
+                        <p class="text-slate-400 text-xs mono">Casewise Diagnostic & XAI Output</p>
                     </div>
                 </div>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
+                    <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
-            <div class="p-8 overflow-y-auto" id="modal-content"></div>
-            <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex justify-end">
-                <button onclick="closeModal()" class="px-6 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 transition-colors">Zatvori profil</button>
+            <div class="p-6 overflow-y-auto" id="modal-content"></div>
+            <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-300 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 text-white text-xs mono font-bold rounded hover:bg-slate-700 transition-colors">Zatvori inspektor</button>
             </div>
         </div>
     </div>
