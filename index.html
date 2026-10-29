@@ -64,7 +64,7 @@
         /* PRINT STYLES */
         @media print {
             body { background-color: #ffffff !important; }
-            #login-screen, #upload-screen, #report-header, #patient-modal, #scrambler-modal, .no-print { display: none !important; }
+            #login-screen, #upload-screen, #report-header, #patient-modal, .no-print { display: none !important; }
             .print-summary { display: block !important; margin-bottom: 2.5rem; page-break-after: avoid; }
             #dashboard-screen { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
             .bg-white, .bg-gradient-to-br { 
@@ -139,13 +139,10 @@
                     </div>
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">UHCE Kiko Analitika Pro</h1>
-                        <p class="text-slate-500 font-medium text-sm sm:text-base">Uvoz i napredna obrada podataka javnog zdravstva</p>
+                        <p class="text-slate-500 font-medium text-sm sm:text-base">Analiza</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 self-start sm:self-center">
-                    <button onclick="openScramblerModal()" class="px-3 py-2 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm" title="Scramble Koda">
-                        <i class="fa-solid fa-code text-indigo-400"></i> Scramble Koda
-                    </button>
                     <button onclick="lockApplication()" class="px-3 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200 flex items-center gap-1.5" title="Odjava">
                         <i class="fa-solid fa-right-from-bracket"></i> Odjava
                     </button>
@@ -291,9 +288,6 @@
                 </div>
 
                 <div class="flex items-center gap-2 border-r border-slate-200 pr-3">
-                    <button onclick="openScramblerModal()" class="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-all border border-indigo-200 flex items-center gap-2 shadow-sm" title="Scramble / Obfuskacija Koda">
-                        <i class="fa-solid fa-code"></i> <span class="hidden sm:inline">Scramble</span>
-                    </button>
                     <button onclick="exportToJSON()" class="px-3 py-2 bg-white text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-all border border-slate-200 flex items-center gap-2 shadow-sm" title="Izvezi u JSON">
                         <i class="fa-solid fa-file-code text-indigo-500"></i> <span class="hidden sm:inline">JSON</span>
                     </button>
@@ -519,831 +513,430 @@
     </div>
 
     <!-- ==========================================
-         4. MODAL ZA SCRAMBLE / OBFUSKACIJU KODA
-         ========================================== -->
-    <div id="scrambler-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 fade-in no-print">
-        <div class="bg-slate-900 border border-slate-700 text-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden slide-up flex flex-col max-h-[92vh]">
-            <div class="px-8 py-5 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold shadow-lg shadow-indigo-600/30">
-                        <i class="fa-solid fa-user-secret text-lg"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black tracking-tight">Generator Zamućenog Koda (Code Scrambler)</h2>
-                        <p class="text-slate-400 text-xs">Pretvara izvršnu logiku ili cijelu aplikaciju u obfuskani (scrambled) polimorfni zapis</p>
-                    </div>
-                </div>
-                <button onclick="closeScramblerModal()" class="text-slate-400 hover:text-white transition-colors">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
-            </div>
-
-            <div class="p-6 overflow-y-auto space-y-5 flex-1">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60">
-                        <div class="text-xs font-bold text-indigo-400 uppercase mb-1">Metoda 1</div>
-                        <div class="font-bold text-sm">XOR + Base64 Payload</div>
-                        <p class="text-xs text-slate-400 mt-1">Šifrira ulazni kod dinamičkim ključem i pakira ga u samoraspakirajući loader.</p>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60">
-                        <div class="text-xs font-bold text-emerald-400 uppercase mb-1">Metoda 2</div>
-                        <div class="font-bold text-sm">Hexadecimal Array (_0x)</div>
-                        <p class="text-xs text-slate-400 mt-1">Zamjenjuje stringove i varijable heksadecimalnim nizovima poput `_0x4f2a`.</p>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60">
-                        <div class="text-xs font-bold text-amber-400 uppercase mb-1">Anti-Tamper</div>
-                        <div class="font-bold text-sm">Zaštita od inspekcije</div>
-                        <p class="text-xs text-slate-400 mt-1">Uključuje blokadu desnog klika i prečaca za razvojne alate (F12 / Ctrl+U).</p>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Izvorni ili generirani Scrambled Kod:</label>
-                        <div class="flex gap-2">
-                            <button onclick="scrambleCurrentCore()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> Scramble Jezgre Izračuna
-                            </button>
-                            <button onclick="copyScrambledCode()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
-                                <i class="fa-solid fa-copy"></i> Kopiraj Kod
-                            </button>
-                        </div>
-                    </div>
-                    <textarea id="scrambled-output" rows="10" class="w-full bg-slate-950 text-emerald-400 mono text-xs p-4 rounded-2xl border border-slate-800 focus:outline-none focus:border-indigo-500 select-all" readonly></textarea>
-                    <p id="scramble-copy-status" class="text-xs text-emerald-400 font-bold mt-2 hidden"><i class="fa-solid fa-check mr-1"></i> Zamućeni kod je uspješno kopiran u međuspremnik!</p>
-                </div>
-            </div>
-
-            <div class="px-8 py-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <span class="text-xs text-slate-400"><i class="fa-solid fa-shield-cat text-indigo-400 mr-1"></i> Samostalna produkcijska datoteka pakira cijeli HTML u zaštićeni omotač.</span>
-                <div class="flex gap-3">
-                    <button onclick="downloadFullScrambledHTML()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
-                        <i class="fa-solid fa-download"></i> Preuzmi Cijeli Scrambled HTML
-                    </button>
-                    <button onclick="closeScramblerModal()" class="px-5 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-700 transition-colors">Zatvori</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==========================================
-         5. OBFUSKANA / SCRAMBLED JEZGRA APLIKACIJE
+         4. DIREKTNO SCRAMBLED / OBFUSKANA JEZGRA
          ========================================== -->
     <script>
-        /*
-         * SIGURNOSNA NAPOMENA:
-         * Provjera šifre (1111) i kritična logika bodovanja su zamućene (scrambled)
-         * pomoću heksadecimalnih tablica (_0x5a1f) i dinamičke provjere hash vrijednosti
-         * kako se šifra ne bi mogla pročitati običnim pregledom izvornog koda.
-         */
-        const _0x5a1f = [
-            '\x31\x31\x31\x31', // [0] '1111' (Obfuscated hex target)
-            '\x6c\x6f\x67\x69\x6e\x2d\x73\x63\x72\x65\x65\x6e', // [1] 'login-screen'
-            '\x75\x70\x6c\x6f\x61\x64\x2d\x73\x63\x72\x65\x65\x6e', // [2] 'upload-screen'
-            '\x64\x61\x73\x68\x62\x6f\x61\x72\x64\x2d\x73\x63\x72\x65\x65\x6e', // [3] 'dashboard-screen'
-            '\x68\x69\x64\x64\x65\x6e', // [4] 'hidden'
-            '\x61\x63\x74\x69\x76\x65', // [5] 'active'
-            '\x65\x72\x72\x6f\x72', // [6] 'error'
-            '\x73\x75\x63\x63\x65\x73\x73' // [7] 'success'
-        ];
+        (function(_0x9a1c, _0x4d8e) {
+            const _0x5a1f = [
+                '\x31\x31\x31\x31', '\x4d\x54\x45\x78\x4d\x51\x3d\x3d', '\x6c\x6f\x67\x69\x6e\x2d\x73\x63\x72\x65\x65\x6e',
+                '\x75\x70\x6c\x6f\x61\x64\x2d\x73\x63\x72\x65\x65\x6e', '\x64\x61\x73\x68\x62\x6f\x61\x72\x64\x2d\x73\x63\x72\x65\x65\x6e',
+                '\x70\x61\x73\x73\x77\x6f\x72\x64\x2d\x69\x6e\x70\x75\x74', '\x6c\x6f\x67\x69\x6e\x2d\x6d\x73\x67', '\x6c\x6f\x67\x69\x6e\x2d\x63\x61\x72\x64',
+                '\x68\x69\x64\x64\x65\x6e', '\x6e\x6f\x6e\x65', '\x66\x6c\x65\x78', '\x62\x6c\x6f\x63\x6b',
+                '\x46\x31\x32', '\x63\x6f\x6e\x74\x65\x78\x74\x6d\x65\x6e\x75', '\x63\x6f\x70\x79', '\x63\x75\x74', '\x73\x65\x6c\x65\x63\x74\x73\x74\x61\x72\x74'
+            ];
 
-        // Zamućena funkcija za provjeru PIN-a (bez tekstualnog "1111" u uvjetu)
-        function _0x3c9e(_0x1b2a) {
-            if (!_0x1b2a) return false;
-            const _0xclean = String(_0x1b2a).trim();
-            // Provjera preko Base64 ('MTExMQ==' === '1111') i Hex niza
-            return window.btoa(_0xclean) === '\x4d\x54\x45\x78\x4d\x51\x3d\x3d' || _0xclean === _0x5a1f[0];
-        }
+            let _0xAuth = false, _0xData = [], _0xAdv = false, _0xVis = 10, _0xCharts = {}, _0xApp = 'default', _0xSort = { col: 'risk', dir: 'desc' }, _0xFltr = null;
 
-        // Stanje prijave
-        let isAuthenticated = false;
+            const _0x3c9e = (_0x1b) => {
+                if (!_0x1b) return false;
+                const _0xc = String(_0x1b).trim();
+                return _0x9a1c.btoa(_0xc) === _0x5a1f[1] || _0xc === _0x5a1f[0];
+            };
 
-        function submitPassword() {
-            if (isAuthenticated) return;
-            const inputEl = document.getElementById('password-input');
-            const val = inputEl ? inputEl.value.trim() : '';
-            const msgEl = document.getElementById('login-msg');
-            const cardEl = document.getElementById('login-card');
-
-            if (_0x3c9e(val)) {
-                isAuthenticated = true;
-                inputEl.classList.remove('border-rose-500');
-                inputEl.classList.add('border-emerald-500');
-                msgEl.innerText = "Šifra prihvaćena. Otvaranje...";
-                msgEl.className = "h-6 text-xs font-bold text-emerald-400 mb-2 transition-all opacity-100";
-
-                // Odmah otključaj ekran
-                const loginScreen = document.getElementById('login-screen');
-                const uploadScreen = document.getElementById('upload-screen');
-                if (loginScreen) {
-                    loginScreen.classList.add('hidden');
-                    loginScreen.style.display = 'none';
-                }
-                if (uploadScreen) {
-                    uploadScreen.classList.remove('hidden');
-                    uploadScreen.style.display = 'flex';
-                }
-            } else {
-                inputEl.classList.add('border-rose-500');
-                msgEl.innerText = "Netočna šifra. Pokušajte ponovno.";
-                msgEl.className = "h-6 text-xs font-bold text-rose-400 mb-2 transition-all opacity-100";
-                cardEl.classList.remove('shake');
-                void cardEl.offsetWidth;
-                cardEl.classList.add('shake');
-                inputEl.value = "";
-                inputEl.focus();
-            }
-        }
-
-        function lockApplication() {
-            isAuthenticated = false;
-            const inputEl = document.getElementById('password-input');
-            if (inputEl) {
-                inputEl.value = "";
-                inputEl.classList.remove('border-emerald-500', 'border-rose-500');
-            }
-            document.getElementById('login-msg').classList.add('opacity-0');
-            
-            const dashScreen = document.getElementById('dashboard-screen');
-            const uploadScreen = document.getElementById('upload-screen');
-            const loginScreen = document.getElementById('login-screen');
-            
-            if (dashScreen) { dashScreen.classList.add('hidden'); dashScreen.style.display = ''; }
-            if (uploadScreen) { uploadScreen.classList.add('hidden'); uploadScreen.style.display = ''; }
-            if (loginScreen) { loginScreen.classList.remove('hidden'); loginScreen.style.display = 'flex'; }
-            
-            if (inputEl) setTimeout(() => inputEl.focus(), 100);
-        }
-
-        // Zaštita prečaca (F12, Ctrl+Shift+I, Ctrl+U)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
-                e.preventDefault();
-            }
-        });
-
-        // Blokiranje desnog klika na login ekranu radi sigurnosti
-        document.addEventListener('contextmenu', (e) => {
-            if (!isAuthenticated) e.preventDefault();
-        });
-
-        // ==========================================
-        // GLAVNA ANALITIČKA LOGIKA (UHCE V4)
-        // ==========================================
-        let appData = [];
-        let isAdvancedMode = false;
-        let tableVisibleCount = 10;
-        let chartInstances = {};
-        let selectedAnalyticsApproach = 'default';
-        let currentSort = { col: 'risk', dir: 'desc' };
-        let activeMatrixFilter = null;
-
-        window.onload = () => {
-            localStorage.removeItem('uhceKikoData');
-            setupDragAndDrop();
-            scrambleCurrentCore(); // Inicijaliziraj scrambler prikaz
-        };
-
-        function setupDragAndDrop() {
-            const dropZone = document.getElementById('drop-zone');
-            const fileInput = document.getElementById('data-file');
-            const fileNameDisplay = document.getElementById('file-name-display');
-
-            fileInput.addEventListener('change', (e) => {
-                if(e.target.files.length) fileNameDisplay.innerText = "Odabrano: " + e.target.files[0].name;
-            });
-
-            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
-            dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-active'); });
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('drag-active');
-                if (e.dataTransfer.files.length) {
-                    fileInput.files = e.dataTransfer.files;
-                    fileNameDisplay.innerText = "Spremno: " + e.dataTransfer.files[0].name;
-                }
-            });
-        }
-
-        // --- UPLOAD & PARSE LOGIC ---
-        document.getElementById('btn-analyze').addEventListener('click', () => {
-            if (!isAuthenticated) return;
-            const fileInput = document.getElementById('data-file');
-            const format = document.querySelector('input[name="dataFormat"]:checked').value;
-            const selectEl = document.getElementById('analytics-approach');
-            selectedAnalyticsApproach = selectEl.value;
-            
-            document.getElementById('lbl-active-model').innerText = selectEl.options[selectEl.selectedIndex].text.split('(')[0];
-
-            if (!fileInput.files.length) {
-                showMsg('Molimo odaberite datoteku za analizu ili kliknite na "Pokreni brzu simulaciju" ispod.', 'error');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const fileName = file.name.toLowerCase();
-            
-            if (fileName.endsWith('.csv')) {
-                Papa.parse(file, {
-                    header: true, skipEmptyLines: true,
-                    complete: function(results) { handleParsedData(results.data, format); },
-                    error: function(err) { showMsg('Pogreška parsera: ' + err.message, 'error'); }
+            // Direktna zaštita od kopiranja, desnog klika i inspekcije na cijeloj stranici
+            [_0x5a1f[13], _0x5a1f[14], _0x5a1f[15], _0x5a1f[16]].forEach(_0xEv => {
+                _0x4d8e.addEventListener(_0xEv, (_e) => {
+                    if (_e.target && _e.target.tagName === 'INPUT') return;
+                    _e.preventDefault();
                 });
-            } else if (fileName.endsWith('.json')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const jsonData = JSON.parse(e.target.result);
-                        if (!Array.isArray(jsonData)) throw new Error("JSON mora biti niz.");
-                        
-                        if (jsonData.length > 0 && jsonData[0].risk !== undefined) {
-                            appData = jsonData; initDashboard(); showMsg('Učitani prethodno obrađeni podaci.', 'success');
-                        } else {
-                            handleParsedData(jsonData, format);
-                        }
-                    } catch (err) { showMsg('Greška: ' + err.message, 'error'); }
-                };
-                reader.readAsText(file);
-            } else {
-                showMsg('Nepodržan format. Koristite .csv ili .json', 'error');
-            }
-        });
+            });
+            _0x9a1c.addEventListener('keydown', (_e) => {
+                const _k = (_e.key || '').toLowerCase();
+                if (_e.key === _0x5a1f[12] || (_e.ctrlKey && _e.shiftKey && ['i', 'j', 'c'].includes(_k)) || (_e.ctrlKey && ['u', 's', 'c', 'x'].includes(_k))) {
+                    if (_e.target && _e.target.tagName === 'INPUT' && ['c', 'x'].includes(_k)) return;
+                    _e.preventDefault();
+                }
+            });
 
-        function handleParsedData(data, format) {
-            if (data && data.length > 0) {
-                try {
-                    appData = processCsvData(data, format);
-                    if(appData.length > 0) { initDashboard(); } 
-                    else { showMsg('Podaci ne sadrže potrebne stupce.', 'error'); }
-                } catch(err) { showMsg('Greška pri obradi: ' + err.message, 'error'); }
-            } else { showMsg('Prazna datoteka.', 'error'); }
-        }
+            _0x9a1c.submitPassword = function() {
+                if (_0xAuth) return;
+                const _in = _0x4d8e.getElementById(_0x5a1f[5]);
+                const _vl = _in ? _in.value.trim() : '';
+                const _ms = _0x4d8e.getElementById(_0x5a1f[6]);
+                const _cd = _0x4d8e.getElementById(_0x5a1f[7]);
 
-        function showMsg(text, type) {
-            const box = document.getElementById('upload-msg-box');
-            box.innerText = text;
-            box.className = `mt-4 p-4 rounded-xl text-sm font-semibold border block fade-in ${type === 'error' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`;
-        }
-
-        // Obfuskana jezgra izračuna (Scramble varijable unutar matematičkog modela)
-        function processCsvData(rows, format) {
-            let _0xOut = [];
-            let _w0 = -3.5, _w1 = 0.25, _w2 = 0.25, _w3 = 0.25, _w4 = 0.1, _w5 = 0.3;
-            
-            if (selectedAnalyticsApproach === 'polypharmacy') {
-                _w1 = 0.15; _w2 = 0.15; _w3 = 0.15; _w4 = 0.05; _w5 = 0.6; 
-            } else if (selectedAnalyticsApproach === 'psychosocial') {
-                _w1 = 0.10; _w2 = 0.55; _w3 = 0.55; _w5 = 0.2;
-            } else if (selectedAnalyticsApproach === 'predictive') {
-                _w0 = -2.0; _w1 = 0.3; _w2 = 0.3; _w3 = 0.3; _w4 = 0.15; _w5 = 0.4;
-            }
-
-            rows.forEach((row, index) => {
-                const _gI = (k) => { const v = parseInt(row[k]); return isNaN(v) ? 0 : v; };
-
-                let _tPh = 0, _tPs = 0, _tSo = 0, _tTot = 0;
-                let _h = _gI('C1') || 165;
-                let _w = _gI('C2') || 70;
-                let _bmi = _h > 0 ? +(_w / Math.pow(_h / 100, 2)).toFixed(1) : 25;
-                
-                let _mrq = 0;
-                for(let i=19; i<=28; i++) { if (_gI(`A${i}`) === 1) _mrq++; }
-
-                if (format === 'scored') {
-                    _tPh = _gI('TFI A1-A8'); _tPs = _gI('TFI A9-A12');
-                    _tSo = _gI('TFI A13-A15'); _tTot = _gI('TFI A1-A15');
+                if (_0x3c9e(_vl)) {
+                    _0xAuth = true;
+                    _in.classList.remove('border-rose-500'); _in.classList.add('border-emerald-500');
+                    _ms.innerText = "Šifra prihvaćena. Otvaranje...";
+                    _ms.className = "h-6 text-xs font-bold text-emerald-400 mb-2 transition-all opacity-100";
+                    const _ls = _0x4d8e.getElementById(_0x5a1f[2]), _us = _0x4d8e.getElementById(_0x5a1f[3]);
+                    if (_ls) { _ls.classList.add(_0x5a1f[8]); _ls.style.display = _0x5a1f[9]; }
+                    if (_us) { _us.classList.remove(_0x5a1f[8]); _us.style.display = _0x5a1f[10]; }
                 } else {
-                    _tPh = [1,2,3,4,5,6,7,8].reduce((s, i) => s + (_gI(`A${i}`)===1?1:0), 0);
-                    _tPs = [9,10,11,12].reduce((s, i) => s + (_gI(`A${i}`)===1?1:0), 0);
-                    _tSo = [13,14,15].reduce((s, i) => s + (_gI(`A${i}`)===1?1:0), 0);
-                    _tTot = _tPh + _tPs + _tSo;
+                    _in.classList.add('border-rose-500');
+                    _ms.innerText = "Netočna šifra. Pokušajte ponovno.";
+                    _ms.className = "h-6 text-xs font-bold text-rose-400 mb-2 transition-all opacity-100";
+                    _cd.classList.remove('shake'); void _cd.offsetWidth; _cd.classList.add('shake');
+                    _in.value = ""; _in.focus();
                 }
+            };
 
-                let _a16 = (_gI('A16') === 1) ? 1 : 0; 
-                let _a17 = (_gI('A17') === 1) ? 1 : 0;
-                let _a18 = _gI('A18') || 0; 
+            _0x9a1c.lockApplication = function() {
+                _0xAuth = false;
+                const _in = _0x4d8e.getElementById(_0x5a1f[5]);
+                if (_in) { _in.value = ""; _in.classList.remove('border-emerald-500', 'border-rose-500'); }
+                _0x4d8e.getElementById(_0x5a1f[6]).classList.add('opacity-0');
+                const _ds = _0x4d8e.getElementById(_0x5a1f[4]), _us = _0x4d8e.getElementById(_0x5a1f[3]), _ls = _0x4d8e.getElementById(_0x5a1f[2]);
+                if (_ds) { _ds.classList.add(_0x5a1f[8]); _ds.style.display = ''; }
+                if (_us) { _us.classList.add(_0x5a1f[8]); _us.style.display = ''; }
+                if (_ls) { _ls.classList.remove(_0x5a1f[8]); _ls.style.display = _0x5a1f[10]; }
+                if (_in) setTimeout(() => _in.focus(), 100);
+            };
 
-                let _bEx = (_bmi > 30) ? _bmi - 30 : 0;
-                let _cTFI = (_tPh * _w1) + (_tPs * _w2) + (_tSo * _w3);
-                let _cBMI = _bEx * _w4;
-                let _cMRQ = _mrq * _w5;
-
-                let _lgt = _w0 + _cTFI + _cBMI + _cMRQ;
-                let _prb = 1 / (1 + Math.exp(-_lgt));
-                let _rsk = Math.round(_prb * 100);
-
-                let _topF = "Mješovito";
-                if(_cMRQ > _cTFI && _cMRQ > _cBMI && _mrq > 3) _topF = "Polifarmacija (Prekomjeran broj lijekova)";
-                else if(_cTFI >= _cMRQ && _cTFI > _cBMI) _topF = "Krhkost (TFI Sindrom)";
-                else if(_cBMI > _cTFI && _cBMI > _cMRQ) _topF = "Obezitet (BMI > 30)";
-
-                _0xOut.push({
-                    id: row['šifra'] || row['RB'] || `HRI-${1000 + index}`,
-                    bmi: _bmi, tfi_phys: _tPh, tfi_psych: _tPs, tfi_soc: _tSo, tfi_total: _tTot,
-                    a16_fear: _a16, a17_fall: _a17, a18_falls: _a18,
-                    mrq: _mrq, risk: _rsk, xai: _topF
-                });
-            });
-
-            return _0xOut.filter(d => d.tfi_total !== undefined); 
-        }
-
-        function loadMockData() {
-            if (!isAuthenticated) return;
-            const selectEl = document.getElementById('analytics-approach');
-            selectedAnalyticsApproach = selectEl.value;
-            document.getElementById('lbl-active-model').innerText = selectEl.options[selectEl.selectedIndex].text.split('(')[0];
-
-            let mock = [];
-            for(let i=1; i<=250; i++) {
-                let id = `HRI-${1400 + i}`;
-                let h = Math.floor(Math.random() * (185 - 150 + 1)) + 150;
-                let w = Math.floor(Math.random() * (100 - 55 + 1)) + 55;
-                let bmi = +(w / Math.pow(h / 100, 2)).toFixed(1);
-                let t_ph = Math.floor(Math.random() * 9); let t_ps = Math.floor(Math.random() * 5); let t_so = Math.floor(Math.random() * 4);
-                let t_tot = t_ph + t_ps + t_so;
-                let mrq = Math.floor(Math.random() * 10);
-                
-                let logit = -3.5 + (t_tot * 0.25) + ((bmi > 30 ? bmi-30 : 0) * 0.1) + (mrq * 0.3);
-                let prob = 1 / (1 + Math.exp(-logit));
-                let fall = Math.random() < prob ? 1 : 0;
-                
-                mock.push({
-                    id: id, bmi: bmi, tfi_phys: t_ph, tfi_psych: t_ps, tfi_soc: t_so, tfi_total: t_tot,
-                    a16_fear: Math.random() < (prob + 0.15) ? 1 : 0, a17_fall: fall, a18_falls: fall ? Math.floor(Math.random()*3)+1 : 0,
-                    mrq: mrq, risk: Math.round(prob * 100), xai: (mrq>5 ? "Polifarmacija" : "Krhkost")
+            function _0xSetupDD() {
+                const _dz = _0x4d8e.getElementById('drop-zone'), _fi = _0x4d8e.getElementById('data-file'), _fn = _0x4d8e.getElementById('file-name-display');
+                _fi.addEventListener('change', (_e) => { if (_e.target.files.length) _fn.innerText = "Odabrano: " + _e.target.files[0].name; });
+                _dz.addEventListener('dragover', (_e) => { _e.preventDefault(); _dz.classList.add('drag-active'); });
+                _dz.addEventListener('dragleave', () => { _dz.classList.remove('drag-active'); });
+                _dz.addEventListener('drop', (_e) => {
+                    _e.preventDefault(); _dz.classList.remove('drag-active');
+                    if (_e.dataTransfer.files.length) { _fi.files = _e.dataTransfer.files; _fn.innerText = "Spremno: " + _e.dataTransfer.files[0].name; }
                 });
             }
-            appData = mock;
-            initDashboard();
-        }
 
-        function resetData() {
-            appData = []; activeMatrixFilter = null;
-            const dashScreen = document.getElementById('dashboard-screen');
-            const uploadScreen = document.getElementById('upload-screen');
-            dashScreen.classList.add('hidden'); dashScreen.style.display = '';
-            uploadScreen.classList.remove('hidden'); uploadScreen.style.display = 'flex';
-            document.getElementById('upload-msg-box').classList.add('hidden');
-        }
+            _0x9a1c.onload = () => { localStorage.removeItem('uhceKikoData'); _0xSetupDD(); };
 
-        function initDashboard() {
-            const dashScreen = document.getElementById('dashboard-screen');
-            const uploadScreen = document.getElementById('upload-screen');
-            uploadScreen.classList.add('hidden'); uploadScreen.style.display = 'none';
-            dashScreen.classList.remove('hidden'); dashScreen.style.display = 'block';
-            
-            Chart.defaults.font.family = "'Inter', sans-serif"; Chart.defaults.color = '#64748b';
-            updateKPIs(); renderBasicCharts();
-            if(isAdvancedMode) renderAdvancedFeatures();
-        }
+            function _0xMsg(_t, _tp) {
+                const _b = _0x4d8e.getElementById('upload-msg-box');
+                _b.innerText = _t;
+                _b.className = `mt-4 p-4 rounded-xl text-sm font-semibold border block fade-in ${_tp === 'error' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`;
+            }
 
-        function updateKPIs() {
-            const total = appData.length;
-            const falls = appData.filter(d => d.a17_fall === 1).length;
-            const fears = appData.filter(d => d.a16_fear === 1).length;
-            
-            document.getElementById('hdr-cohort-size').innerText = total;
-            document.getElementById('kpi-falls-pct').innerText = total ? Math.round((falls/total)*100) + '%' : '0%';
-            document.getElementById('kpi-falls-n').innerText = `N=${falls}`;
-            document.getElementById('kpi-fear-pct').innerText = total ? Math.round((fears/total)*100) + '%' : '0%';
-            document.getElementById('kpi-fear-n').innerText = `N=${fears}`;
-            
-            const avgTfi = total ? (appData.reduce((acc, curr) => acc + curr.tfi_total, 0) / total).toFixed(1) : 0;
-            document.getElementById('kpi-tfi-avg').innerText = avgTfi;
-            document.getElementById('kpi-rep-falls').innerText = appData.filter(d => d.a18_falls >= 2).length;
+            function _0xProcCSV(_rws, _fmt) {
+                let _out = [], _w0 = -3.5, _w1 = 0.25, _w2 = 0.25, _w3 = 0.25, _w4 = 0.1, _w5 = 0.3;
+                if (_0xApp === 'polypharmacy') { _w1 = 0.15; _w2 = 0.15; _w3 = 0.15; _w4 = 0.05; _w5 = 0.6; }
+                else if (_0xApp === 'psychosocial') { _w1 = 0.10; _w2 = 0.55; _w3 = 0.55; _w5 = 0.2; }
+                else if (_0xApp === 'predictive') { _w0 = -2.0; _w1 = 0.3; _w2 = 0.3; _w3 = 0.3; _w4 = 0.15; _w5 = 0.4; }
 
-            const avgRisk = total ? Math.round(appData.reduce((acc, d) => acc + d.risk, 0) / total) : 0;
-            const now = new Date();
-            const selectEl = document.getElementById('analytics-approach');
-            
-            document.getElementById('print-date').innerText = now.toLocaleDateString('hr-HR') + ' u ' + now.toLocaleTimeString('hr-HR', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('print-model').innerText = selectEl ? selectEl.options[selectEl.selectedIndex].text : 'Standardna Analiza';
-            document.getElementById('print-n').innerText = total + ' ispitanika';
-            document.getElementById('print-falls').innerText = total ? `${falls} pacijenata (${Math.round((falls/total)*100)}%)` : '-';
-            document.getElementById('print-tfi').innerText = avgTfi + ' / 15';
-            document.getElementById('print-risk').innerText = avgRisk + '%';
-        }
-
-        function renderBasicCharts() {
-            let m00 = 0, m01 = 0, m10 = 0, m11 = 0;
-            let tfiFall = { ph: 0, ps: 0, so: 0, c: 0 }; let tfiNoFall = { ph: 0, ps: 0, so: 0, c: 0 };
-
-            appData.forEach(d => {
-                if (d.a17_fall === 0 && d.a16_fear === 0) m00++;
-                else if (d.a17_fall === 0 && d.a16_fear === 1) m01++;
-                else if (d.a17_fall === 1 && d.a16_fear === 0) m10++;
-                else if (d.a17_fall === 1 && d.a16_fear === 1) m11++;
-
-                if (d.a17_fall === 1) { tfiFall.ph+=d.tfi_phys; tfiFall.ps+=d.tfi_psych; tfiFall.so+=d.tfi_soc; tfiFall.c++; }
-                else { tfiNoFall.ph+=d.tfi_phys; tfiNoFall.ps+=d.tfi_psych; tfiNoFall.so+=d.tfi_soc; tfiNoFall.c++; }
-            });
-
-            if (chartInstances.matrix) chartInstances.matrix.destroy();
-            chartInstances.matrix = new Chart(document.getElementById('matrixChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Bez pada, Bez straha', 'Bez pada, Sa strahom', 'S padom, Bez straha', 'S padom, Sa strahom'],
-                    datasets: [{
-                        data: [m00, m01, m10, m11],
-                        backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#8b5cf6'],
-                        borderColor: '#ffffff', borderWidth: 2, hoverOffset: 12
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, cutout: '60%',
-                    plugins: { legend: { position: 'bottom' } },
-                    onClick: (event, elements) => {
-                        if (elements.length > 0) {
-                            const idx = elements[0].index;
-                            const combos = [{fall:0, fear:0}, {fall:0, fear:1}, {fall:1, fear:0}, {fall:1, fear:1}];
-                            const labels = ['Bez pada, Bez straha', 'Bez pada, Sa strahom', 'S padom, Bez straha', 'S padom, Sa strahom'];
-                            
-                            activeMatrixFilter = combos[idx];
-                            document.getElementById('filter-label').innerText = labels[idx];
-                            document.getElementById('clear-filter-btn').classList.remove('hidden');
-                            tableVisibleCount = 10;
-                            
-                            if(!isAdvancedMode) {
-                                document.getElementById('mode-toggle').click();
-                            }
-                            setTimeout(() => {
-                                document.getElementById('search-input').scrollIntoView({behavior: 'smooth', block: 'center'});
-                            }, 150);
-                            renderTable(document.getElementById('search-input').value);
-                        }
-                    },
-                    onHover: (event, chartElement) => {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                _rws.forEach((_r, _idx) => {
+                    const _gI = (_k) => { const _v = parseInt(_r[_k]); return isNaN(_v) ? 0 : _v; };
+                    let _tPh = 0, _tPs = 0, _tSo = 0, _tTot = 0, _h = _gI('C1') || 165, _w = _gI('C2') || 70;
+                    let _bmi = _h > 0 ? +(_w / Math.pow(_h / 100, 2)).toFixed(1) : 25, _mrq = 0;
+                    for (let _i = 19; _i <= 28; _i++) { if (_gI(`A${_i}`) === 1) _mrq++; }
+                    if (_fmt === 'scored') {
+                        _tPh = _gI('TFI A1-A8'); _tPs = _gI('TFI A9-A12'); _tSo = _gI('TFI A13-A15'); _tTot = _gI('TFI A1-A15');
+                    } else {
+                        _tPh = [1,2,3,4,5,6,7,8].reduce((_s, _i) => _s + (_gI(`A${_i}`) === 1 ? 1 : 0), 0);
+                        _tPs = [9,10,11,12].reduce((_s, _i) => _s + (_gI(`A${_i}`) === 1 ? 1 : 0), 0);
+                        _tSo = [13,14,15].reduce((_s, _i) => _s + (_gI(`A${_i}`) === 1 ? 1 : 0), 0);
+                        _tTot = _tPh + _tPs + _tSo;
                     }
+                    let _a16 = (_gI('A16') === 1) ? 1 : 0, _a17 = (_gI('A17') === 1) ? 1 : 0, _a18 = _gI('A18') || 0;
+                    let _bEx = (_bmi > 30) ? _bmi - 30 : 0, _cTFI = (_tPh * _w1) + (_tPs * _w2) + (_tSo * _w3), _cBMI = _bEx * _w4, _cMRQ = _mrq * _w5;
+                    let _lgt = _w0 + _cTFI + _cBMI + _cMRQ, _prb = 1 / (1 + Math.exp(-_lgt)), _rsk = Math.round(_prb * 100);
+                    let _topF = "Mješovito";
+                    if (_cMRQ > _cTFI && _cMRQ > _cBMI && _mrq > 3) _topF = "Polifarmacija (Prekomjeran broj lijekova)";
+                    else if (_cTFI >= _cMRQ && _cTFI > _cBMI) _topF = "Krhkost (TFI Sindrom)";
+                    else if (_cBMI > _cTFI && _cBMI > _cMRQ) _topF = "Obezitet (BMI > 30)";
+
+                    _out.push({
+                        id: _r['šifra'] || _r['RB'] || `HRI-${1000 + _idx}`, bmi: _bmi,
+                        tfi_phys: _tPh, tfi_psych: _tPs, tfi_soc: _tSo, tfi_total: _tTot,
+                        a16_fear: _a16, a17_fall: _a17, a18_falls: _a18, mrq: _mrq, risk: _rsk, xai: _topF
+                    });
+                });
+                return _out.filter(_d => _d.tfi_total !== undefined);
+            }
+
+            function _0xHdlData(_dt, _fmt) {
+                if (_dt && _dt.length > 0) {
+                    try {
+                        _0xData = _0xProcCSV(_dt, _fmt);
+                        if (_0xData.length > 0) _0xInitDash(); else _0xMsg('Podaci ne sadrže potrebne stupce.', 'error');
+                    } catch (_er) { _0xMsg('Greška pri obradi: ' + _er.message, 'error'); }
+                } else _0xMsg('Prazna datoteka.', 'error');
+            }
+
+            _0x4d8e.getElementById('btn-analyze').addEventListener('click', () => {
+                if (!_0xAuth) return;
+                const _fi = _0x4d8e.getElementById('data-file'), _fmt = _0x4d8e.querySelector('input[name="dataFormat"]:checked').value, _sel = _0x4d8e.getElementById('analytics-approach');
+                _0xApp = _sel.value;
+                _0x4d8e.getElementById('lbl-active-model').innerText = _sel.options[_sel.selectedIndex].text.split('(')[0];
+                if (!_fi.files.length) { _0xMsg('Molimo odaberite datoteku za analizu ili kliknite na "Pokreni brzu simulaciju" ispod.', 'error'); return; }
+                const _f = _fi.files[0], _fn = _f.name.toLowerCase();
+                if (_fn.endsWith('.csv')) {
+                    Papa.parse(_f, { header: true, skipEmptyLines: true, complete: (_res) => _0xHdlData(_res.data, _fmt), error: (_er) => _0xMsg('Pogreška parsera: ' + _er.message, 'error') });
+                } else if (_fn.endsWith('.json')) {
+                    const _rd = new FileReader();
+                    _rd.onload = (_e) => {
+                        try {
+                            const _jd = JSON.parse(_e.target.result);
+                            if (!Array.isArray(_jd)) throw new Error("JSON mora biti niz.");
+                            if (_jd.length > 0 && _jd[0].risk !== undefined) { _0xData = _jd; _0xInitDash(); _0xMsg('Učitani prethodno obrađeni podaci.', 'success'); }
+                            else _0xHdlData(_jd, _fmt);
+                        } catch (_er) { _0xMsg('Greška: ' + _er.message, 'error'); }
+                    };
+                    _rd.readAsText(_f);
+                } else _0xMsg('Nepodržan format. Koristite .csv ili .json', 'error');
+            });
+
+            _0x9a1c.loadMockData = function() {
+                if (!_0xAuth) return;
+                const _sel = _0x4d8e.getElementById('analytics-approach');
+                _0xApp = _sel.value;
+                _0x4d8e.getElementById('lbl-active-model').innerText = _sel.options[_sel.selectedIndex].text.split('(')[0];
+                let _mck = [];
+                for (let _i = 1; _i <= 250; _i++) {
+                    let _id = `HRI-${1400 + _i}`, _h = Math.floor(Math.random() * 36) + 150, _w = Math.floor(Math.random() * 46) + 55;
+                    let _bmi = +(_w / Math.pow(_h / 100, 2)).toFixed(1), _ph = Math.floor(Math.random() * 9), _ps = Math.floor(Math.random() * 5), _so = Math.floor(Math.random() * 4);
+                    let _tot = _ph + _ps + _so, _mrq = Math.floor(Math.random() * 10);
+                    let _lgt = -3.5 + (_tot * 0.25) + ((_bmi > 30 ? _bmi - 30 : 0) * 0.1) + (_mrq * 0.3), _prb = 1 / (1 + Math.exp(-_lgt)), _fl = Math.random() < _prb ? 1 : 0;
+                    _mck.push({
+                        id: _id, bmi: _bmi, tfi_phys: _ph, tfi_psych: _ps, tfi_soc: _so, tfi_total: _tot,
+                        a16_fear: Math.random() < (_prb + 0.15) ? 1 : 0, a17_fall: _fl, a18_falls: _fl ? Math.floor(Math.random() * 3) + 1 : 0,
+                        mrq: _mrq, risk: Math.round(_prb * 100), xai: (_mrq > 5 ? "Polifarmacija" : "Krhkost")
+                    });
                 }
+                _0xData = _mck; _0xInitDash();
+            };
+
+            _0x9a1c.resetData = function() {
+                _0xData = []; _0xFltr = null;
+                const _ds = _0x4d8e.getElementById(_0x5a1f[4]), _us = _0x4d8e.getElementById(_0x5a1f[3]);
+                _ds.classList.add(_0x5a1f[8]); _ds.style.display = '';
+                _us.classList.remove(_0x5a1f[8]); _us.style.display = _0x5a1f[10];
+                _0x4d8e.getElementById('upload-msg-box').classList.add(_0x5a1f[8]);
+            };
+
+            function _0xInitDash() {
+                const _ds = _0x4d8e.getElementById(_0x5a1f[4]), _us = _0x4d8e.getElementById(_0x5a1f[3]);
+                _us.classList.add(_0x5a1f[8]); _us.style.display = _0x5a1f[9];
+                _ds.classList.remove(_0x5a1f[8]); _ds.style.display = _0x5a1f[11];
+                Chart.defaults.font.family = "'Inter', sans-serif"; Chart.defaults.color = '#64748b';
+                _0xUpdKPI(); _0xRndBasic();
+                if (_0xAdv) _0xRndAdv();
+            }
+
+            function _0xUpdKPI() {
+                const _tot = _0xData.length, _fls = _0xData.filter(_d => _d.a17_fall === 1).length, _frs = _0xData.filter(_d => _d.a16_fear === 1).length;
+                _0x4d8e.getElementById('hdr-cohort-size').innerText = _tot;
+                _0x4d8e.getElementById('kpi-falls-pct').innerText = _tot ? Math.round((_fls / _tot) * 100) + '%' : '0%';
+                _0x4d8e.getElementById('kpi-falls-n').innerText = `N=${_fls}`;
+                _0x4d8e.getElementById('kpi-fear-pct').innerText = _tot ? Math.round((_frs / _tot) * 100) + '%' : '0%';
+                _0x4d8e.getElementById('kpi-fear-n').innerText = `N=${_frs}`;
+                const _avgT = _tot ? (_0xData.reduce((_a, _c) => _a + _c.tfi_total, 0) / _tot).toFixed(1) : 0;
+                _0x4d8e.getElementById('kpi-tfi-avg').innerText = _avgT;
+                _0x4d8e.getElementById('kpi-rep-falls').innerText = _0xData.filter(_d => _d.a18_falls >= 2).length;
+                const _avgR = _tot ? Math.round(_0xData.reduce((_a, _d) => _a + _d.risk, 0) / _tot) : 0, _nw = new Date(), _sel = _0x4d8e.getElementById('analytics-approach');
+                _0x4d8e.getElementById('print-date').innerText = _nw.toLocaleDateString('hr-HR') + ' u ' + _nw.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' });
+                _0x4d8e.getElementById('print-model').innerText = _sel ? _sel.options[_sel.selectedIndex].text : 'Standardna Analiza';
+                _0x4d8e.getElementById('print-n').innerText = _tot + ' ispitanika';
+                _0x4d8e.getElementById('print-falls').innerText = _tot ? `${_fls} pacijenata (${Math.round((_fls / _tot) * 100)}%)` : '-';
+                _0x4d8e.getElementById('print-tfi').innerText = _avgT + ' / 15';
+                _0x4d8e.getElementById('print-risk').innerText = _avgR + '%';
+            }
+
+            function _0xRndBasic() {
+                let _m00 = 0, _m01 = 0, _m10 = 0, _m11 = 0, _tF = { ph: 0, ps: 0, so: 0, c: 0 }, _tNF = { ph: 0, ps: 0, so: 0, c: 0 };
+                _0xData.forEach(_d => {
+                    if (_d.a17_fall === 0 && _d.a16_fear === 0) _m00++;
+                    else if (_d.a17_fall === 0 && _d.a16_fear === 1) _m01++;
+                    else if (_d.a17_fall === 1 && _d.a16_fear === 0) _m10++;
+                    else if (_d.a17_fall === 1 && _d.a16_fear === 1) _m11++;
+                    if (_d.a17_fall === 1) { _tF.ph += _d.tfi_phys; _tF.ps += _d.tfi_psych; _tF.so += _d.tfi_soc; _tF.c++; }
+                    else { _tNF.ph += _d.tfi_phys; _tNF.ps += _d.tfi_psych; _tNF.so += _d.tfi_soc; _tNF.c++; }
+                });
+                if (_0xCharts.matrix) _0xCharts.matrix.destroy();
+                _0xCharts.matrix = new Chart(_0x4d8e.getElementById('matrixChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Bez pada, Bez straha', 'Bez pada, Sa strahom', 'S padom, Bez straha', 'S padom, Sa strahom'],
+                        datasets: [{ data: [_m00, _m01, _m10, _m11], backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#8b5cf6'], borderColor: '#ffffff', borderWidth: 2, hoverOffset: 12 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } },
+                        onClick: (_ev, _els) => {
+                            if (_els.length > 0) {
+                                const _ix = _els[0].index, _cb = [{ fall: 0, fear: 0 }, { fall: 0, fear: 1 }, { fall: 1, fear: 0 }, { fall: 1, fear: 1 }];
+                                const _lb = ['Bez pada, Bez straha', 'Bez pada, Sa strahom', 'S padom, Bez straha', 'S padom, Sa strahom'];
+                                _0xFltr = _cb[_ix];
+                                _0x4d8e.getElementById('filter-label').innerText = _lb[_ix];
+                                _0x4d8e.getElementById('clear-filter-btn').classList.remove(_0x5a1f[8]);
+                                _0xVis = 10;
+                                if (!_0xAdv) _0x4d8e.getElementById('mode-toggle').click();
+                                setTimeout(() => _0x4d8e.getElementById('search-input').scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+                                _0xRndTbl(_0x4d8e.getElementById('search-input').value);
+                            }
+                        },
+                        onHover: (_ev, _ce) => { _ev.native.target.style.cursor = _ce[0] ? 'pointer' : 'default'; }
+                    }
+                });
+                const _sA = (_s, _c) => _c > 0 ? (_s / _c).toFixed(2) : 0;
+                if (_0xCharts.tfiBar) _0xCharts.tfiBar.destroy();
+                _0xCharts.tfiBar = new Chart(_0x4d8e.getElementById('tfiBarChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Fizička (0-8)', 'Psihološka (0-4)', 'Socijalna (0-3)'],
+                        datasets: [
+                            { label: 'Osobe bez pada', data: [_sA(_tNF.ph, _tNF.c), _sA(_tNF.ps, _tNF.c), _sA(_tNF.so, _tNF.c)], backgroundColor: '#94a3b8', borderRadius: 6 },
+                            { label: 'Osobe s padom', data: [_sA(_tF.ph, _tF.c), _sA(_tF.ps, _tF.c), _sA(_tF.so, _tF.c)], backgroundColor: '#e11d48', borderRadius: 6 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, border: { display: false } }, x: { grid: { display: false } } } }
+                });
+            }
+
+            _0x9a1c.clearTableFilter = function() {
+                _0xFltr = null;
+                _0x4d8e.getElementById('clear-filter-btn').classList.add(_0x5a1f[8]);
+                _0xVis = 10;
+                _0xRndTbl(_0x4d8e.getElementById('search-input').value);
+            };
+
+            _0x4d8e.getElementById('mode-toggle').addEventListener('change', (_e) => {
+                _0xAdv = _e.target.checked;
+                const _as = _0x4d8e.getElementById('advanced-section');
+                if (_0xAdv) { _as.classList.remove(_0x5a1f[8]); _0xRndAdv(); } else _as.classList.add(_0x5a1f[8]);
             });
 
-            const sAvg = (s, c) => c > 0 ? (s/c).toFixed(2) : 0;
-            if (chartInstances.tfiBar) chartInstances.tfiBar.destroy();
-            chartInstances.tfiBar = new Chart(document.getElementById('tfiBarChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Fizička (0-8)', 'Psihološka (0-4)', 'Socijalna (0-3)'],
-                    datasets: [
-                        { label: 'Osobe bez pada', data: [sAvg(tfiNoFall.ph, tfiNoFall.c), sAvg(tfiNoFall.ps, tfiNoFall.c), sAvg(tfiNoFall.so, tfiNoFall.c)], backgroundColor: '#94a3b8', borderRadius: 6 },
-                        { label: 'Osobe s padom', data: [sAvg(tfiFall.ph, tfiFall.c), sAvg(tfiFall.ps, tfiFall.c), sAvg(tfiFall.so, tfiFall.c)], backgroundColor: '#e11d48', borderRadius: 6 }
-                    ]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    scales: { y: { beginAtZero: true, border: {display: false} }, x: { grid: {display: false} } }
+            function _0xRndAdv() {
+                _0xRndPoly(); _0xRndTbl(); _0xRndRadar(); _0xRndBubble();
+                const _tot = _0xData.length, _avgR = _tot ? _0xData.reduce((_a, _d) => _a + _d.risk, 0) / _tot : 0;
+                _0x4d8e.getElementById('avg-risk-score').innerText = Math.round(_avgR) + '%';
+                _0x4d8e.getElementById('risk-bar').style.width = Math.round(_avgR) + '%';
+            }
+
+            function _0xRndPoly() {
+                let _bns = { '0-2 lijeka': { fall: 0, no: 0 }, '3-5 lijekova': { fall: 0, no: 0 }, '6+ (Polifarmacija)': { fall: 0, no: 0 } }, _mv = [];
+                _0xData.forEach(_d => {
+                    _mv.push(_d.mrq);
+                    let _b = _d.mrq <= 2 ? '0-2 lijeka' : (_d.mrq <= 5 ? '3-5 lijekova' : '6+ (Polifarmacija)');
+                    if (_d.a17_fall === 1) _bns[_b].fall++; else _bns[_b].no++;
+                });
+                _mv.sort((_a, _b) => _a - _b);
+                let _med = 0, _sd = 0;
+                if (_mv.length) {
+                    let _md = Math.floor(_mv.length / 2);
+                    _med = _mv.length % 2 !== 0 ? _mv[_md] : (_mv[_md - 1] + _mv[_md]) / 2;
+                    let _mn = _mv.reduce((_a, _b) => _a + _b, 0) / _mv.length;
+                    _sd = Math.sqrt(_mv.map(_x => Math.pow(_x - _mn, 2)).reduce((_a, _b) => _a + _b) / _mv.length).toFixed(1);
                 }
-            });
-        }
-
-        function clearTableFilter() {
-            activeMatrixFilter = null;
-            document.getElementById('clear-filter-btn').classList.add('hidden');
-            tableVisibleCount = 10;
-            renderTable(document.getElementById('search-input').value);
-        }
-
-        document.getElementById('mode-toggle').addEventListener('change', function(e) {
-            isAdvancedMode = e.target.checked;
-            const advSection = document.getElementById('advanced-section');
-            if(isAdvancedMode) {
-                advSection.classList.remove('hidden'); renderAdvancedFeatures();
-            } else { advSection.classList.add('hidden'); }
-        });
-
-        function renderAdvancedFeatures() {
-            renderPolypharmacyChart();
-            renderTable();
-            renderRadarChart();
-            renderBubbleChart();
-            
-            const total = appData.length;
-            const avgRisk = total ? appData.reduce((acc, d) => acc + d.risk, 0) / total : 0;
-            document.getElementById('avg-risk-score').innerText = Math.round(avgRisk) + '%';
-            document.getElementById('risk-bar').style.width = Math.round(avgRisk) + '%';
-        }
-
-        function renderPolypharmacyChart() {
-            let bins = { '0-2 lijeka': { fall:0, no:0 }, '3-5 lijekova': { fall:0, no:0 }, '6+ (Polifarmacija)': { fall:0, no:0 } };
-            let mrqVals = [];
-            
-            appData.forEach(d => {
-                mrqVals.push(d.mrq);
-                let bin = d.mrq <= 2 ? '0-2 lijeka' : (d.mrq <= 5 ? '3-5 lijekova' : '6+ (Polifarmacija)');
-                if(d.a17_fall === 1) bins[bin].fall++; else bins[bin].no++;
-            });
-
-            mrqVals.sort((a,b)=>a-b);
-            let median = 0, sd = 0;
-            if(mrqVals.length) {
-                let mid = Math.floor(mrqVals.length/2);
-                median = mrqVals.length%2 !== 0 ? mrqVals[mid] : (mrqVals[mid-1]+mrqVals[mid])/2;
-                let mean = mrqVals.reduce((a,b)=>a+b,0)/mrqVals.length;
-                sd = Math.sqrt(mrqVals.map(x=>Math.pow(x-mean,2)).reduce((a,b)=>a+b)/mrqVals.length).toFixed(1);
-            }
-            document.getElementById('mrq-stats-subtitle').innerHTML = `Kohorta: <b>Medijan: ${median} lijeka</b> | SD: ${sd}`;
-
-            const labels = Object.keys(bins);
-            const dataFallPct = labels.map(l => {
-                let total = bins[l].fall + bins[l].no;
-                return total > 0 ? ((bins[l].fall / total) * 100).toFixed(1) : 0;
-            });
-
-            if (chartInstances.mrq) chartInstances.mrq.destroy();
-            chartInstances.mrq = new Chart(document.getElementById('mrqChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '% Osoba s padom u skupini',
-                        data: dataFallPct,
-                        backgroundColor: '#6366f1', borderRadius: 6
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { y: { title: {display: true, text: '% Rizika od pada'}, min: 0 } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function renderRadarChart() {
-            let fallSum = { ph:0, ps:0, so:0, mrq:0, count:0 }, noFallSum = { ph:0, ps:0, so:0, mrq:0, count:0 };
-
-            appData.forEach(d => {
-                let target = d.a17_fall === 1 ? fallSum : noFallSum;
-                target.ph += d.tfi_phys; target.ps += d.tfi_psych; target.so += d.tfi_soc; target.mrq += d.mrq; target.count++;
-            });
-
-            const normalize = (val, max, count) => count > 0 ? ((val/count)/max)*100 : 0;
-            const fallData = [normalize(fallSum.ph, 8, fallSum.count), normalize(fallSum.ps, 4, fallSum.count), normalize(fallSum.so, 3, fallSum.count), normalize(fallSum.mrq, 10, fallSum.count)];
-            const noFallData = [normalize(noFallSum.ph, 8, noFallSum.count), normalize(noFallSum.ps, 4, noFallSum.count), normalize(noFallSum.so, 3, noFallSum.count), normalize(noFallSum.mrq, 10, noFallSum.count)];
-
-            if (chartInstances.radar) chartInstances.radar.destroy();
-            chartInstances.radar = new Chart(document.getElementById('radarChart').getContext('2d'), {
-                type: 'radar',
-                data: {
-                    labels: ['Fizička Krhkost', 'Psihološka Krhkost', 'Socijalna Krhkost', 'Polifarmacija'],
-                    datasets: [
-                        { label: 'S padom (Prosjek %)', data: fallData, backgroundColor: 'rgba(225, 29, 72, 0.2)', borderColor: '#e11d48', borderWidth: 2 },
-                        { label: 'Bez pada (Prosjek %)', data: noFallData, backgroundColor: 'rgba(148, 163, 184, 0.2)', borderColor: '#94a3b8', borderWidth: 2 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } }
-            });
-        }
-
-        function renderBubbleChart() {
-            let clusters = {}; 
-            appData.forEach(d => {
-                let key = `${d.a17_fall}_${d.tfi_total}_${d.mrq}`;
-                if(!clusters[key]) clusters[key] = { x: d.tfi_total, y: d.mrq, isFall: d.a17_fall, count: 0, totalRisk: 0 };
-                clusters[key].count++;
-                clusters[key].totalRisk += d.risk;
-            });
-
-            let fallBubbles = [], noFallBubbles = [];
-            Object.values(clusters).forEach(c => {
-                let bubble = { x: c.x, y: c.y, r: Math.min(20, Math.max(4, c.count * 2)), count: c.count, avgRisk: Math.round(c.totalRisk/c.count) };
-                if (c.isFall) fallBubbles.push(bubble); else noFallBubbles.push(bubble);
-            });
-
-            if (chartInstances.bubble) chartInstances.bubble.destroy();
-            chartInstances.bubble = new Chart(document.getElementById('bubbleChart').getContext('2d'), {
-                type: 'bubble',
-                data: {
-                    datasets: [
-                        { label: 'Grupe Bez pada', data: noFallBubbles, backgroundColor: 'rgba(148, 163, 184, 0.6)' },
-                        { label: 'Grupe S padom', data: fallBubbles, backgroundColor: 'rgba(225, 29, 72, 0.7)' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { title: { display: true, text: 'Ukupni TFI (0-15)' } }, y: { title: { display: true, text: 'Broj Lijekova' } } },
-                    plugins: { tooltip: { callbacks: { label: (ctx) => `Pacijenata: ${ctx.raw.count} | TFI: ${ctx.raw.x} | Lijekovi: ${ctx.raw.y} | Pros. Rizik: ${ctx.raw.avgRisk}%` } } }
-                }
-            });
-        }
-
-        function sortTableBy(column) {
-            if (currentSort.col === column) {
-                currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.col = column; currentSort.dir = 'asc';
-            }
-            renderTable(document.getElementById('search-input').value);
-        }
-
-        function updateSortIcons() {
-            document.querySelectorAll('.sort-icon').forEach(el => {
-                el.classList.remove('fa-sort-up', 'fa-sort-down', 'sort-active');
-                el.classList.add('fa-sort');
-            });
-            const activeIcon = document.getElementById(`sort-icon-${currentSort.col}`);
-            if(activeIcon) {
-                activeIcon.classList.remove('fa-sort');
-                activeIcon.classList.add(currentSort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down', 'sort-active');
-            }
-        }
-
-        function renderTable(searchTerm = '') {
-            const tbody = document.getElementById('patient-table-body');
-            tbody.innerHTML = '';
-            
-            let filtered = appData.filter(d => d.id.toLowerCase().includes(searchTerm.toLowerCase()));
-            if (activeMatrixFilter) {
-                filtered = filtered.filter(d => d.a17_fall === activeMatrixFilter.fall && d.a16_fear === activeMatrixFilter.fear);
+                _0x4d8e.getElementById('mrq-stats-subtitle').innerHTML = `Kohorta: <b>Medijan: ${_med} lijeka</b> | SD: ${_sd}`;
+                const _lbs = Object.keys(_bns), _dfp = _lbs.map(_l => { let _t = _bns[_l].fall + _bns[_l].no; return _t > 0 ? ((_bns[_l].fall / _t) * 100).toFixed(1) : 0; });
+                if (_0xCharts.mrq) _0xCharts.mrq.destroy();
+                _0xCharts.mrq = new Chart(_0x4d8e.getElementById('mrqChart').getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: _lbs, datasets: [{ label: '% Osoba s padom u skupini', data: _dfp, backgroundColor: '#6366f1', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '% Rizika od pada' }, min: 0 } }, plugins: { legend: { display: false } } }
+                });
             }
 
-            filtered.sort((a, b) => {
-                let valA = a[currentSort.col], valB = b[currentSort.col];
-                if(typeof valA === 'string') return currentSort.dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                return currentSort.dir === 'asc' ? valA - valB : valB - valA;
-            });
-            
-            updateSortIcons();
-
-            filtered.slice(0, tableVisibleCount).forEach(d => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-indigo-50/50 transition-colors group";
-                
-                let fallBadge = d.a17_fall 
-                    ? `<span class="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold">Da (${d.a18_falls} pad)</span>`
-                    : `<span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold">Ne</span>`;
-                
-                let riskColor = d.risk > 50 ? 'text-rose-600' : (d.risk > 25 ? 'text-amber-500' : 'text-emerald-500');
-
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-bold text-slate-900">${d.id}</td>
-                    <td class="px-6 py-4 font-medium">${d.tfi_total}</td>
-                    <td class="px-6 py-4">${d.bmi}</td>
-                    <td class="px-6 py-4">${d.mrq}</td>
-                    <td class="px-6 py-4">${fallBadge}</td>
-                    <td class="px-6 py-4 font-black ${riskColor}">${d.risk}%</td>
-                    <td class="px-6 py-4 text-right no-print">
-                        <button onclick="openModal('${d.id}')" class="px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg text-indigo-600 font-bold text-xs hover:border-indigo-300 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100">Profil</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            const btnLoadMore = document.getElementById('btn-load-more');
-            if (filtered.length > tableVisibleCount) {
-                btnLoadMore.parentElement.classList.remove('hidden');
-                btnLoadMore.parentElement.classList.add('flex');
-            } else {
-                btnLoadMore.parentElement.classList.add('hidden');
-                btnLoadMore.parentElement.classList.remove('flex');
+            function _0xRndRadar() {
+                let _fS = { ph: 0, ps: 0, so: 0, mrq: 0, count: 0 }, _nfS = { ph: 0, ps: 0, so: 0, mrq: 0, count: 0 };
+                _0xData.forEach(_d => {
+                    let _tg = _d.a17_fall === 1 ? _fS : _nfS;
+                    _tg.ph += _d.tfi_phys; _tg.ps += _d.tfi_psych; _tg.so += _d.tfi_soc; _tg.mrq += _d.mrq; _tg.count++;
+                });
+                const _nrm = (_v, _mx, _c) => _c > 0 ? ((_v / _c) / _mx) * 100 : 0;
+                if (_0xCharts.radar) _0xCharts.radar.destroy();
+                _0xCharts.radar = new Chart(_0x4d8e.getElementById('radarChart').getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: ['Fizička Krhkost', 'Psihološka Krhkost', 'Socijalna Krhkost', 'Polifarmacija'],
+                        datasets: [
+                            { label: 'S padom (Prosjek %)', data: [_nrm(_fS.ph, 8, _fS.count), _nrm(_fS.ps, 4, _fS.count), _nrm(_fS.so, 3, _fS.count), _nrm(_fS.mrq, 10, _fS.count)], backgroundColor: 'rgba(225, 29, 72, 0.2)', borderColor: '#e11d48', borderWidth: 2 },
+                            { label: 'Bez pada (Prosjek %)', data: [_nrm(_nfS.ph, 8, _nfS.count), _nrm(_nfS.ps, 4, _nfS.count), _nrm(_nfS.so, 3, _nfS.count), _nrm(_nfS.mrq, 10, _nfS.count)], backgroundColor: 'rgba(148, 163, 184, 0.2)', borderColor: '#94a3b8', borderWidth: 2 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } }
+                });
             }
-        }
 
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            tableVisibleCount = 10; renderTable(e.target.value);
-        });
-        document.getElementById('btn-load-more').addEventListener('click', () => {
-            tableVisibleCount += 10; renderTable(document.getElementById('search-input').value);
-        });
-
-        function openModal(id) {
-            const patient = appData.find(d => d.id === id);
-            if(!patient) return;
-
-            document.getElementById('modal-id').innerText = patient.id;
-            document.getElementById('modal-avatar').innerText = patient.id.split('-')[1] || 'ID';
-            
-            const content = document.getElementById('modal-content');
-            
-            let riskAlert = patient.risk > 50 
-                ? `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-3 text-rose-700 mb-6"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl"></i><div><strong class="block text-lg">Kritičan prediktivni rizik: ${patient.risk}%</strong>Model ukazuje da je glavni faktor za ovog pacijenta: <b>${patient.xai}</b>. Preporuča se hitna intervencija.</div></div>`
-                : `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex gap-3 text-emerald-700 mb-6"><i class="fa-solid fa-check-circle mt-1 text-xl"></i><div><strong class="block text-lg">Umjeren rizik: ${patient.risk}%</strong>Dominantan faktor: <b>${patient.xai}</b>. Nastaviti praćenje.</div></div>`;
-
-            content.innerHTML = `
-                ${riskAlert}
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="p-4 border rounded-xl bg-slate-50 text-center">
-                        <p class="text-xs font-bold text-slate-500 uppercase">Status pada (12mj)</p>
-                        <p class="text-2xl font-black mt-1 ${patient.a17_fall ? 'text-rose-600' : 'text-slate-800'}">${patient.a17_fall ? 'Pao/la' : 'Nije pao/la'}</p>
-                    </div>
-                    <div class="p-4 border rounded-xl bg-slate-50 text-center">
-                        <p class="text-xs font-bold text-slate-500 uppercase">Strah od pada</p>
-                        <p class="text-2xl font-black mt-1 ${patient.a16_fear ? 'text-amber-500' : 'text-slate-800'}">${patient.a16_fear ? 'Prisutan' : 'Odsutan'}</p>
-                    </div>
-                </div>
-
-                <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Klinički Indikatori</h3>
-                <ul class="space-y-3">
-                    <li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm">
-                        <span class="font-medium text-slate-600"><i class="fa-solid fa-heart-pulse w-6 text-indigo-400"></i> Ukupni TFI (Krhkost)</span>
-                        <span class="font-black text-lg text-indigo-700">${patient.tfi_total} <span class="text-xs font-normal text-slate-400">/ 15</span></span>
-                    </li>
-                    <li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm">
-                        <span class="font-medium text-slate-600"><i class="fa-solid fa-pills w-6 text-indigo-400"></i> MRQ-10 (Lijekovi)</span>
-                        <span class="font-black text-lg">${patient.mrq}</span>
-                    </li>
-                </ul>
-            `;
-            document.getElementById('patient-modal').classList.remove('hidden'); document.getElementById('patient-modal').classList.add('flex');
-        }
-
-        function closeModal() {
-            document.getElementById('patient-modal').classList.add('hidden'); document.getElementById('patient-modal').classList.remove('flex');
-        }
-
-        // ==========================================
-        // ALAT ZA SCRAMBLE / OBFUSKACIJU KODA
-        // ==========================================
-        function openScramblerModal() {
-            scrambleCurrentCore();
-            document.getElementById('scrambler-modal').classList.remove('hidden');
-            document.getElementById('scrambler-modal').classList.add('flex');
-        }
-
-        function closeScramblerModal() {
-            document.getElementById('scrambler-modal').classList.add('hidden');
-            document.getElementById('scrambler-modal').classList.remove('flex');
-        }
-
-        // Pretvara JS kod u heksadecimalni polimorfni zapis s Base64/XOR omotačem
-        function generateScrambledJS(rawCode) {
-            const xorKey = 0x5A;
-            let hexPayload = [];
-            for (let i = 0; i < rawCode.length; i++) {
-                const encodedByte = rawCode.charCodeAt(i) ^ xorKey;
-                hexPayload.push('0x' + encodedByte.toString(16).padStart(2, '0'));
+            function _0xRndBubble() {
+                let _cls = {};
+                _0xData.forEach(_d => {
+                    let _k = `${_d.a17_fall}_${_d.tfi_total}_${_d.mrq}`;
+                    if (!_cls[_k]) _cls[_k] = { x: _d.tfi_total, y: _d.mrq, isFall: _d.a17_fall, count: 0, totalRisk: 0 };
+                    _cls[_k].count++; _cls[_k].totalRisk += _d.risk;
+                });
+                let _fB = [], _nfB = [];
+                Object.values(_cls).forEach(_c => {
+                    let _b = { x: _c.x, y: _c.y, r: Math.min(20, Math.max(4, _c.count * 2)), count: _c.count, avgRisk: Math.round(_c.totalRisk / _c.count) };
+                    if (_c.isFall) _fB.push(_b); else _nfB.push(_b);
+                });
+                if (_0xCharts.bubble) _0xCharts.bubble.destroy();
+                _0xCharts.bubble = new Chart(_0x4d8e.getElementById('bubbleChart').getContext('2d'), {
+                    type: 'bubble',
+                    data: {
+                        datasets: [
+                            { label: 'Grupe Bez pada', data: _nfB, backgroundColor: 'rgba(148, 163, 184, 0.6)' },
+                            { label: 'Grupe S padom', data: _fB, backgroundColor: 'rgba(225, 29, 72, 0.7)' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { x: { title: { display: true, text: 'Ukupni TFI (0-15)' } }, y: { title: { display: true, text: 'Broj Lijekova' } } },
+                        plugins: { tooltip: { callbacks: { label: (_ctx) => `Pacijenata: ${_ctx.raw.count} | TFI: ${_ctx.raw.x} | Lijekovi: ${_ctx.raw.y} | Pros. Rizik: ${_ctx.raw.avgRisk}%` } } }
+                    }
+                });
             }
-            const varDict = ['_0x4f1a', '_0x9b2c', '_0x7e3d', '_0x1c8a', '_0x6d4b'];
-            return `/* UHCE KIKO PRO - SCRAMBLED SECURITY ENGINE (PIN: PROTECTED) */\n(function(${varDict[0]},${varDict[1]}){\n  const ${varDict[2]}=function(${varDict[3]}){\n    let ${varDict[4]}='';\n    for(let i=0;i<${varDict[3]}.length;i++){${varDict[4]}+=String.fromCharCode(${varDict[3]}[i]^${varDict[1]});}\n    return ${varDict[4]};\n  };\n  Function(${varDict[2]}(${varDict[0]}))();\n})([${hexPayload.join(',')}], ${xorKey});`;
-        }
 
-        function scrambleCurrentCore() {
-            const coreLogicString = _0x3c9e.toString() + "\n" + processCsvData.toString();
-            const scrambled = generateScrambledJS(coreLogicString);
-            document.getElementById('scrambled-output').value = scrambled;
-        }
+            _0x9a1c.sortTableBy = function(_col) {
+                if (_0xSort.col === _col) _0xSort.dir = _0xSort.dir === 'asc' ? 'desc' : 'asc';
+                else { _0xSort.col = _col; _0xSort.dir = 'asc'; }
+                _0xRndTbl(_0x4d8e.getElementById('search-input').value);
+            };
 
-        function copyScrambledCode() {
-            const out = document.getElementById('scrambled-output');
-            out.select();
-            document.execCommand('copy');
-            const status = document.getElementById('scramble-copy-status');
-            status.classList.remove('hidden');
-            setTimeout(() => status.classList.add('hidden'), 3000);
-        }
+            function _0xUpdSortIco() {
+                _0x4d8e.querySelectorAll('.sort-icon').forEach(_el => { _el.classList.remove('fa-sort-up', 'fa-sort-down', 'sort-active'); _el.classList.add('fa-sort'); });
+                const _ac = _0x4d8e.getElementById(`sort-icon-${_0xSort.col}`);
+                if (_ac) { _ac.classList.remove('fa-sort'); _ac.classList.add(_0xSort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down', 'sort-active'); }
+            }
 
-        // Generira i preuzima potpuno zamućenu (scrambled) samostalnu HTML datoteku
-        function downloadFullScrambledHTML() {
-            const currentHTML = document.documentElement.outerHTML;
-            const b64Payload = btoa(unescape(encodeURIComponent(currentHTML)));
-            const chunks = b64Payload.match(/.{1,120}/g).map(c => `'${c}'`).join('+\n');
+            function _0xRndTbl(_st = '') {
+                const _tb = _0x4d8e.getElementById('patient-table-body');
+                _tb.innerHTML = '';
+                let _flt = _0xData.filter(_d => _d.id.toLowerCase().includes(_st.toLowerCase()));
+                if (_0xFltr) _flt = _flt.filter(_d => _d.a17_fall === _0xFltr.fall && _d.a16_fear === _0xFltr.fear);
+                _flt.sort((_a, _b) => {
+                    let _vA = _a[_0xSort.col], _vB = _b[_0xSort.col];
+                    if (typeof _vA === 'string') return _0xSort.dir === 'asc' ? _vA.localeCompare(_vB) : _vB.localeCompare(_vA);
+                    return _0xSort.dir === 'asc' ? _vA - _vB : _vB - _vA;
+                });
+                _0xUpdSortIco();
+                _flt.slice(0, _0xVis).forEach(_d => {
+                    const _tr = _0x4d8e.createElement('tr');
+                    _tr.className = "hover:bg-indigo-50/50 transition-colors group";
+                    let _fb = _d.a17_fall ? `<span class="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold">Da (${_d.a18_falls} pad)</span>` : `<span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold">Ne</span>`;
+                    let _rc = _d.risk > 50 ? 'text-rose-600' : (_d.risk > 25 ? 'text-amber-500' : 'text-emerald-500');
+                    _tr.innerHTML = `<td class="px-6 py-4 font-bold text-slate-900">${_d.id}</td><td class="px-6 py-4 font-medium">${_d.tfi_total}</td><td class="px-6 py-4">${_d.bmi}</td><td class="px-6 py-4">${_d.mrq}</td><td class="px-6 py-4">${_fb}</td><td class="px-6 py-4 font-black ${_rc}">${_d.risk}%</td><td class="px-6 py-4 text-right no-print"><button onclick="openModal('${_d.id}')" class="px-3 py-1.5 bg-white border border-slate-200 shadow-sm rounded-lg text-indigo-600 font-bold text-xs hover:border-indigo-300 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100">Profil</button></td>`;
+                    _tb.appendChild(_tr);
+                });
+                const _blm = _0x4d8e.getElementById('btn-load-more');
+                if (_flt.length > _0xVis) { _blm.parentElement.classList.remove(_0x5a1f[8]); _blm.parentElement.classList.add(_0x5a1f[10]); }
+                else { _blm.parentElement.classList.add(_0x5a1f[8]); _blm.parentElement.classList.remove(_0x5a1f[10]); }
+            }
 
-            const scrambledStandaloneHTML = `<!DOCTYPE html>
-<html lang="hr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UHCE Kiko Analitika Pro V4 [SCRAMBLED BUILD]</title>
-<script>
-/* SCRAMBLED APPLICATION LOADER - DO NOT MODIFY */
-(function(_0x1a2b){
-    document.addEventListener("DOMContentLoaded", function(){
-        try {
-            var _0x3f4e = decodeURIComponent(escape(window.atob(_0x1a2b)));
-            document.open();
-            document.write(_0x3f4e);
-            document.close();
-        } catch(_0xErr) {
-            document.body.innerHTML = "Security Integrity Error.";
-        }
-    });
-})(
-${chunks}
-);
-<\/script>
-</head>
-<body style="background:#020617;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
-<div>Dekriptiranje sigurnosnog sučelja...</div>
-</body>
-</html>`;
+            _0x4d8e.getElementById('search-input').addEventListener('input', (_e) => { _0xVis = 10; _0xRndTbl(_e.target.value); });
+            _0x4d8e.getElementById('btn-load-more').addEventListener('click', () => { _0xVis += 10; _0xRndTbl(_0x4d8e.getElementById('search-input').value); });
 
-            downloadFile(scrambledStandaloneHTML, 'analiza_padova_pro_v4_SCRAMBLED.html', 'text/html;charset=utf-8;');
-        }
+            _0x9a1c.openModal = function(_id) {
+                const _p = _0xData.find(_d => _d.id === _id);
+                if (!_p) return;
+                _0x4d8e.getElementById('modal-id').innerText = _p.id;
+                _0x4d8e.getElementById('modal-avatar').innerText = _p.id.split('-')[1] || 'ID';
+                const _cnt = _0x4d8e.getElementById('modal-content');
+                let _ra = _p.risk > 50
+                    ? `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-3 text-rose-700 mb-6"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl"></i><div><strong class="block text-lg">Kritičan prediktivni rizik: ${_p.risk}%</strong>Model ukazuje da je glavni faktor za ovog pacijenta: <b>${_p.xai}</b>. Preporuča se hitna intervencija.</div></div>`
+                    : `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex gap-3 text-emerald-700 mb-6"><i class="fa-solid fa-check-circle mt-1 text-xl"></i><div><strong class="block text-lg">Umjeren rizik: ${_p.risk}%</strong>Dominantan faktor: <b>${_p.xai}</b>. Nastaviti praćenje.</div></div>`;
+                _cnt.innerHTML = `${_ra}<div class="grid grid-cols-2 gap-4 mb-6"><div class="p-4 border rounded-xl bg-slate-50 text-center"><p class="text-xs font-bold text-slate-500 uppercase">Status pada (12mj)</p><p class="text-2xl font-black mt-1 ${_p.a17_fall ? 'text-rose-600' : 'text-slate-800'}">${_p.a17_fall ? 'Pao/la' : 'Nije pao/la'}</p></div><div class="p-4 border rounded-xl bg-slate-50 text-center"><p class="text-xs font-bold text-slate-500 uppercase">Strah od pada</p><p class="text-2xl font-black mt-1 ${_p.a16_fear ? 'text-amber-500' : 'text-slate-800'}">${_p.a16_fear ? 'Prisutan' : 'Odsutan'}</p></div></div><h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Klinički Indikatori</h3><ul class="space-y-3"><li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm"><span class="font-medium text-slate-600"><i class="fa-solid fa-heart-pulse w-6 text-indigo-400"></i> Ukupni TFI (Krhkost)</span><span class="font-black text-lg text-indigo-700">${_p.tfi_total} <span class="text-xs font-normal text-slate-400">/ 15</span></span></li><li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm"><span class="font-medium text-slate-600"><i class="fa-solid fa-pills w-6 text-indigo-400"></i> MRQ-10 (Lijekovi)</span><span class="font-black text-lg">${_p.mrq}</span></li></ul>`;
+                _0x4d8e.getElementById('patient-modal').classList.remove(_0x5a1f[8]); _0x4d8e.getElementById('patient-modal').classList.add(_0x5a1f[10]);
+            };
 
-        function downloadFile(content, fileName, contentType) {
-            const blob = new Blob([content], { type: contentType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = fileName;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        }
+            _0x9a1c.closeModal = function() {
+                _0x4d8e.getElementById('patient-modal').classList.add(_0x5a1f[8]); _0x4d8e.getElementById('patient-modal').classList.remove(_0x5a1f[10]);
+            };
 
-        function exportToJSON() { if(appData.length) downloadFile(JSON.stringify(appData, null, 2), 'Analitika.json', 'application/json'); }
-        function exportToCSV() { if(appData.length) downloadFile(Papa.unparse(appData), 'Analitika.csv', 'text/csv;charset=utf-8;'); }
-        
-        function exportToPDF() {
-            for (let key in chartInstances) if (chartInstances[key]) chartInstances[key].resize();
-            window.print();
-        }
+            function _0xDl(_cnt, _fn, _ct) {
+                const _bl = new Blob([_cnt], { type: _ct }), _u = URL.createObjectURL(_bl), _a = _0x4d8e.createElement('a');
+                _a.href = _u; _a.download = _fn; _0x4d8e.body.appendChild(_a); _a.click(); _0x4d8e.body.removeChild(_a); URL.revokeObjectURL(_u);
+            }
+
+            _0x9a1c.exportToJSON = function() { if (_0xData.length) _0xDl(JSON.stringify(_0xData, null, 2), 'Analitika.json', 'application/json'); };
+            _0x9a1c.exportToCSV = function() { if (_0xData.length) _0xDl(Papa.unparse(_0xData), 'Analitika.csv', 'text/csv;charset=utf-8;'); };
+            _0x9a1c.exportToPDF = function() { for (let _k in _0xCharts) if (_0xCharts[_k]) _0xCharts[_k].resize(); _0x9a1c.print(); };
+        })(window, document);
     </script>
 </body>
 </html>
