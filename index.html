@@ -607,13 +607,13 @@
         ];
 
         // Zamućena funkcija za provjeru PIN-a (bez tekstualnog "1111" u uvjetu)
-        // Hash izračun za '1111' -> ((49*31 + 49)*31 + 49)*31 + 49 = 1509442
+        // Hash izračun za '1111' -> (((49*31 + 49)*31 + 49)*31 + 49) = 1511072 (0x170e90)
         function _0x3c9e(_0x1b2a) {
             let _0x4d8f = 0;
             for (let _0x2e1c = 0; _0x2e1c < _0x1b2a.length; _0x2e1c++) {
                 _0x4d8f = (_0x4d8f * 31) + (_0x1b2a.charCodeAt(_0x2e1c) ^ 0x00);
             }
-            return _0x4d8f === 0x170842 && _0x1b2a === _0x5a1f[0];
+            return _0x4d8f === 0x170e90 && _0x1b2a === _0x5a1f[0];
         }
 
         // Stanje prijave
