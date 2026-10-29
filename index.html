@@ -106,9 +106,10 @@
             <form onsubmit="event.preventDefault(); submitPassword();" class="space-y-4 mb-4">
                 <div class="relative">
                     <input type="password" id="password-input" placeholder="Upišite šifru..." autocomplete="off" autofocus
+                        oninput="if(this.value.trim().length === 4) submitPassword();"
                         class="w-full px-4 py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-white text-center font-bold text-lg tracking-widest placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all select-text">
                 </div>
-                <button type="submit" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2">
+                <button type="button" onclick="submitPassword()" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2">
                     <span>Potvrdi i nastavi</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -607,13 +608,11 @@
         ];
 
         // Zamućena funkcija za provjeru PIN-a (bez tekstualnog "1111" u uvjetu)
-        // Hash izračun za '1111' -> (((49*31 + 49)*31 + 49)*31 + 49) = 1511072 (0x170e90)
         function _0x3c9e(_0x1b2a) {
-            let _0x4d8f = 0;
-            for (let _0x2e1c = 0; _0x2e1c < _0x1b2a.length; _0x2e1c++) {
-                _0x4d8f = (_0x4d8f * 31) + (_0x1b2a.charCodeAt(_0x2e1c) ^ 0x00);
-            }
-            return _0x4d8f === 0x170e90 && _0x1b2a === _0x5a1f[0];
+            if (!_0x1b2a) return false;
+            const _0xclean = String(_0x1b2a).trim();
+            // Provjera preko Base64 ('MTExMQ==' === '1111') i Hex niza
+            return window.btoa(_0xclean) === '\x4d\x54\x45\x78\x4d\x51\x3d\x3d' || _0xclean === _0x5a1f[0];
         }
 
         // Stanje prijave
@@ -622,7 +621,7 @@
         function submitPassword() {
             if (isAuthenticated) return;
             const inputEl = document.getElementById('password-input');
-            const val = inputEl.value.trim();
+            const val = inputEl ? inputEl.value.trim() : '';
             const msgEl = document.getElementById('login-msg');
             const cardEl = document.getElementById('login-card');
 
@@ -633,10 +632,17 @@
                 msgEl.innerText = "Šifra prihvaćena. Otvaranje...";
                 msgEl.className = "h-6 text-xs font-bold text-emerald-400 mb-2 transition-all opacity-100";
 
-                setTimeout(() => {
-                    document.getElementById(_0x5a1f[1]).classList.add(_0x5a1f[4]);
-                    document.getElementById(_0x5a1f[2]).classList.remove(_0x5a1f[4]);
-                }, 350);
+                // Odmah otključaj ekran
+                const loginScreen = document.getElementById('login-screen');
+                const uploadScreen = document.getElementById('upload-screen');
+                if (loginScreen) {
+                    loginScreen.classList.add('hidden');
+                    loginScreen.style.display = 'none';
+                }
+                if (uploadScreen) {
+                    uploadScreen.classList.remove('hidden');
+                    uploadScreen.style.display = 'flex';
+                }
             } else {
                 inputEl.classList.add('border-rose-500');
                 msgEl.innerText = "Netočna šifra. Pokušajte ponovno.";
@@ -657,9 +663,15 @@
                 inputEl.classList.remove('border-emerald-500', 'border-rose-500');
             }
             document.getElementById('login-msg').classList.add('opacity-0');
-            document.getElementById(_0x5a1f[3]).classList.add(_0x5a1f[4]);
-            document.getElementById(_0x5a1f[2]).classList.add(_0x5a1f[4]);
-            document.getElementById(_0x5a1f[1]).classList.remove(_0x5a1f[4]);
+            
+            const dashScreen = document.getElementById('dashboard-screen');
+            const uploadScreen = document.getElementById('upload-screen');
+            const loginScreen = document.getElementById('login-screen');
+            
+            if (dashScreen) { dashScreen.classList.add('hidden'); dashScreen.style.display = ''; }
+            if (uploadScreen) { uploadScreen.classList.add('hidden'); uploadScreen.style.display = ''; }
+            if (loginScreen) { loginScreen.classList.remove('hidden'); loginScreen.style.display = 'flex'; }
+            
             if (inputEl) setTimeout(() => inputEl.focus(), 100);
         }
 
@@ -868,14 +880,18 @@
 
         function resetData() {
             appData = []; activeMatrixFilter = null;
-            document.getElementById('dashboard-screen').classList.add('hidden');
-            document.getElementById('upload-screen').classList.remove('hidden');
+            const dashScreen = document.getElementById('dashboard-screen');
+            const uploadScreen = document.getElementById('upload-screen');
+            dashScreen.classList.add('hidden'); dashScreen.style.display = '';
+            uploadScreen.classList.remove('hidden'); uploadScreen.style.display = 'flex';
             document.getElementById('upload-msg-box').classList.add('hidden');
         }
 
         function initDashboard() {
-            document.getElementById('upload-screen').classList.add('hidden');
-            document.getElementById('dashboard-screen').classList.remove('hidden');
+            const dashScreen = document.getElementById('dashboard-screen');
+            const uploadScreen = document.getElementById('upload-screen');
+            uploadScreen.classList.add('hidden'); uploadScreen.style.display = 'none';
+            dashScreen.classList.remove('hidden'); dashScreen.style.display = 'block';
             
             Chart.defaults.font.family = "'Inter', sans-serif"; Chart.defaults.color = '#64748b';
             updateKPIs(); renderBasicCharts();
