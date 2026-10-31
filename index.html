@@ -69,20 +69,36 @@
         /* Klasa za print sekciju koja je skrivena na ekranu */
         .print-summary { display: none; }
 
-        /* PRINT STYLES */
+        /* PRINT STYLES - Kompaktan raspored bez polupraznih stranica */
         @media print {
-            body { background-color: #ffffff !important; }
+            @page { size: A4 portrait; margin: 10mm 12mm; }
+            body { background-color: #ffffff !important; font-size: 11px !important; }
             #login-screen, #upload-screen, #report-header, #stat-menubar, #stat-statusbar, #patient-modal, .no-print { display: none !important; }
-            .print-summary { display: block !important; margin-bottom: 2.5rem; page-break-after: avoid; }
+            .print-summary { display: block !important; margin-bottom: 12px !important; }
             #dashboard-screen { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+            #dashboard-screen > div { padding: 0 !important; margin: 0 !important; }
+            .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 10px !important; }
+            .gap-5 { gap: 10px !important; }
             .bg-white, .bg-gradient-to-br, .stat-panel { 
                 border: 1px solid #cbd5e1 !important; 
                 box-shadow: none !important; 
-                page-break-inside: avoid; 
+                margin-bottom: 10px !important;
+                page-break-inside: avoid;
                 break-inside: avoid;
-                margin-bottom: 20px !important;
             }
-            canvas { max-width: 100% !important; height: auto !important; }
+            /* Dopusti glavnim kontejnerima s više elemenata da se prirodno rasporede bez praznina */
+            #advanced-section, #basic-charts-container {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            .stat-panel-header { padding: 5px 10px !important; font-size: 10px !important; }
+            .p-5, .p-6 { padding: 10px !important; }
+            .p-4 { padding: 8px !important; }
+            .min-h-\[240px\], .min-h-\[220px\], .min-h-\[250px\], .min-h-\[340px\] {
+                min-height: 175px !important;
+                max-height: 195px !important;
+            }
+            canvas { max-width: 100% !important; max-height: 185px !important; height: auto !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
@@ -152,7 +168,7 @@
             <div class="bg-slate-800 text-slate-200 px-5 py-3 flex items-center justify-between border-b border-slate-700">
                 <div class="flex items-center gap-2.5 text-xs mono font-bold tracking-wide">
                     <i class="fa-solid fa-table-cells text-indigo-400"></i>
-                    <span>UHCE Kiko Analitika Pro — Uvoz podatkovne matrice (Data Import Wizard)</span>
+                    <span>UHCE Kiko analitika pro — Uvoz podatkovne matrice</span>
                 </div>
                 <button onclick="lockApplication()" class="px-2.5 py-1 bg-slate-700 hover:bg-rose-600 text-slate-200 hover:text-white rounded text-xs font-semibold transition-all flex items-center gap-1.5" title="Odjava">
                     <i class="fa-solid fa-right-from-bracket"></i> Odjava
@@ -166,7 +182,7 @@
                             <i class="fa-solid fa-square-poll-vertical text-xl"></i>
                         </div>
                         <div>
-                            <h1 class="text-xl font-black text-slate-900 tracking-tight">UHCE Kiko Analitika Pro</h1>
+                            <h1 class="text-xl font-black text-slate-900 tracking-tight">UHCE Kiko analitika pro</h1>
                             <p class="text-slate-500 font-semibold text-xs mono uppercase tracking-wider">Analiza</p>
                         </div>
                     </div>
@@ -189,14 +205,14 @@
                                 <label class="cursor-pointer border border-slate-300 bg-white rounded p-3.5 flex items-start gap-3 hover:border-indigo-400 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/40 relative">
                                     <input type="radio" name="dataFormat" value="raw" class="mt-1 accent-indigo-600" checked>
                                     <div>
-                                        <p class="font-bold text-slate-800 text-xs mono">RAW_DATA (Sirovi odgovori)</p>
+                                        <p class="font-bold text-slate-800 text-xs mono">RAW_DATA (sirovi odgovori)</p>
                                         <p class="text-xs text-slate-500 mt-1">Čestice 1-5, antropometrija C1/C2. Automatsko rekodiranje TFI, ITM i MRQ-10.</p>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer border border-slate-300 bg-white rounded p-3.5 flex items-start gap-3 hover:border-indigo-400 transition-all has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/40">
                                     <input type="radio" name="dataFormat" value="scored" class="mt-1 accent-indigo-600">
                                     <div>
-                                        <p class="font-bold text-slate-800 text-xs mono">SCORED_SUM (Bodovani)</p>
+                                        <p class="font-bold text-slate-800 text-xs mono">SCORED_SUM (bodovani)</p>
                                         <p class="text-xs text-slate-500 mt-1">Sadrži već izračunate kompozitne varijable 'TFI A1-A15'.</p>
                                     </div>
                                 </label>
@@ -218,13 +234,13 @@
                     </div>
 
                     <div class="mt-5 pt-4 border-t border-slate-200">
-                        <label for="analytics-approach" class="block text-xs font-bold text-slate-700 uppercase mb-2">2. Specifikacija regresijskog modela (Ponderi varijabli):</label>
+                        <label for="analytics-approach" class="block text-xs font-bold text-slate-700 uppercase mb-2">2. Specifikacija regresijskog modela (ponderi varijabli):</label>
                         <div class="relative">
                             <select id="analytics-approach" class="block w-full appearance-none bg-white border border-slate-300 text-slate-800 py-2.5 px-3 pr-8 rounded text-xs mono font-semibold leading-tight focus:outline-none focus:border-indigo-600 cursor-pointer">
-                                <option value="default" selected>MODEL_01: Standardna UHCE Analiza (Osnovno - Default)</option>
-                                <option value="polypharmacy">MODEL_02: Fokus Polifarmacija i lijekovi (Viša β težina MRQ)</option>
-                                <option value="psychosocial">MODEL_03: Fokus Psihosocijalna domena i usamljenost</option>
-                                <option value="predictive">MODEL_04: Strogo prediktivni AI model (Visoka osjetljivost)</option>
+                                <option value="default" selected>MODEL_01: Standardna UHCE analiza (osnovni model)</option>
+                                <option value="polypharmacy">MODEL_02: Fokus na polifarmaciju i lijekove (viša β težina za MRQ)</option>
+                                <option value="psychosocial">MODEL_03: Fokus na psihosocijalnu domenu i usamljenost</option>
+                                <option value="predictive">MODEL_04: Strogo prediktivni AI model (visoka osjetljivost)</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
                                 <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -237,7 +253,7 @@
                     
                     <button id="btn-analyze" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded shadow transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider relative z-20">
                         <i class="fa-solid fa-play"></i>
-                        <span>Izvrši proceduru (Run Analysis)</span>
+                        <span>Izvrši proceduru</span>
                     </button>
                 </div>
 
@@ -246,7 +262,7 @@
                         <i class="fa-solid fa-database"></i> Učitaj stvarni primjer (UHCE_27-9-26)
                     </button>
                     <div class="text-slate-500 mono flex items-center gap-2 text-[11px]">
-                        <i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: READY (LOCAL_SESSION)
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i> STATUS: SPREMNO
                     </div>
                 </div>
             </div>
@@ -266,18 +282,18 @@
                     <span>StatViewer // Output1.spv</span>
                 </div>
                 <div class="hidden md:flex items-center gap-4 text-slate-400 text-[11px]">
-                    <span class="text-slate-200 font-semibold border-b-2 border-indigo-400 pb-0.5">Data & Output</span>
-                    <span>Descriptives</span>
-                    <span>Crosstabs</span>
-                    <span>Logistic Regression</span>
-                    <span>Cluster Plot</span>
+                    <span class="text-slate-200 font-semibold border-b-2 border-indigo-400 pb-0.5">Podaci i izlaz</span>
+                    <span>Deskriptivna statistika</span>
+                    <span>Kontingencijske tablice</span>
+                    <span>Logistička regresija</span>
+                    <span>Analiza klastera</span>
                 </div>
             </div>
             <div class="flex items-center gap-3 text-[11px]">
                 <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-emerald-400">
-                    <i class="fa-solid fa-check mr-1"></i>N = <strong id="hdr-cohort-size">0</strong> (Valid: 100%)
+                    <i class="fa-solid fa-check mr-1"></i>N = <strong id="hdr-cohort-size">0</strong> (valjani: 100%)
                 </span>
-                <span class="hidden sm:inline text-slate-400">Filter: <strong class="text-slate-200">AGE ≥ 65</strong></span>
+                <span class="hidden sm:inline text-slate-400">Filtar: <strong class="text-slate-200">DOB ≥ 65</strong></span>
             </div>
         </div>
 
@@ -285,35 +301,35 @@
 
             <!-- PRINT ONLY SUMMARY HEADER -->
             <div id="print-summary" class="print-summary">
-                <h1 class="text-3xl font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-2">Analitičko Izvješće: Odrednice Padova</h1>
-                <p class="text-slate-600 mb-6 text-sm">Generirano: <span id="print-date" class="font-bold"></span> | Pristup/Model: <span id="print-model" class="font-bold text-indigo-700"></span></p>
+                <h1 class="text-2xl font-black text-slate-900 mb-1 border-b-2 border-slate-900 pb-1.5">Analitičko izvješće: odrednice padova</h1>
+                <p class="text-slate-600 mb-3 text-xs">Generirano: <span id="print-date" class="font-bold"></span> | Pristup/model: <span id="print-model" class="font-bold text-indigo-700"></span></p>
                 
-                <div class="mb-6">
-                    <p class="text-sm text-slate-800 mb-5 leading-relaxed">Ovo izvješće donosi kvantitativni i prediktivni sažetak učitane kohorte osoba starije životne dobi (≥65 god), s naglaskom na sindrom krhkosti, polifarmaciju i posljedični rizik od pada. U nastavku se nalaze detaljni vizualni prikazi i distribucije ključnih pokazatelja unutar obrađenog uzorka.</p>
+                <div class="mb-3">
+                    <p class="text-xs text-slate-800 mb-3 leading-relaxed">Ovo izvješće donosi kvantitativni i prediktivni sažetak učitane kohorte osoba starije životne dobi (≥65 god.), s naglaskom na sindrom krhkosti, polifarmaciju i posljedični rizik od pada. U nastavku se nalaze detaljni vizualni prikazi i distribucije ključnih pokazatelja unutar obrađenog uzorka.</p>
                     
-                    <table class="w-full text-left text-sm border-collapse border border-slate-300">
+                    <table class="w-full text-left text-xs border-collapse border border-slate-300">
                         <thead>
                             <tr class="bg-slate-100 text-slate-700">
-                                <th class="border border-slate-300 p-3 w-1/2">Ključni Pokazatelj</th>
-                                <th class="border border-slate-300 p-3 w-1/2">Vrijednost</th>
+                                <th class="border border-slate-300 py-1.5 px-3 w-1/2">Ključni pokazatelj</th>
+                                <th class="border border-slate-300 py-1.5 px-3 w-1/2">Vrijednost</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Veličina kohorte (N)</td>
-                                <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-n">-</td>
+                                <td class="border border-slate-300 py-1.5 px-3 text-slate-600 font-medium">Veličina kohorte (N)</td>
+                                <td class="border border-slate-300 py-1.5 px-3 font-bold text-slate-900" id="print-n">-</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Iskustvo pada u zadnjih 12 mjeseci</td>
-                                <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-falls">-</td>
+                                <td class="border border-slate-300 py-1.5 px-3 text-slate-600 font-medium">Iskustvo pada u zadnjih 12 mjeseci</td>
+                                <td class="border border-slate-300 py-1.5 px-3 font-bold text-slate-900" id="print-falls">-</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni TFI (Indeks krhkosti 0-15)</td>
-                                <td class="border border-slate-300 p-3 font-bold text-slate-900" id="print-tfi">-</td>
+                                <td class="border border-slate-300 py-1.5 px-3 text-slate-600 font-medium">Prosječni TFI (indeks krhkosti 0-15)</td>
+                                <td class="border border-slate-300 py-1.5 px-3 font-bold text-slate-900" id="print-tfi">-</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-3 text-slate-600 font-medium">Prosječni prediktivni AI rizik pada</td>
-                                <td class="border border-slate-300 p-3 font-black text-rose-600" id="print-risk">-</td>
+                                <td class="border border-slate-300 py-1.5 px-3 text-slate-600 font-medium">Prosječni prediktivni AI rizik od pada</td>
+                                <td class="border border-slate-300 py-1.5 px-3 font-black text-rose-600" id="print-risk">-</td>
                             </tr>
                         </tbody>
                     </table>
@@ -328,10 +344,10 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h1 class="text-base font-black text-slate-900 tracking-tight uppercase">Analitika Odrednica Padova</h1>
+                            <h1 class="text-base font-black text-slate-900 tracking-tight">Analitika odrednica padova</h1>
                             <span class="text-[11px] mono bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold border border-indigo-200">PROC_FALL_RISK</span>
                         </div>
-                        <p class="text-slate-500 mono text-xs">Dataset: UHCE_Cohort_65plus.sav | Analitički izlaz</p>
+                        <p class="text-slate-500 mono text-xs">Skup podataka: UHCE_Cohort_65plus.sav | Analitički izlaz</p>
                     </div>
                 </div>
                 
@@ -343,7 +359,7 @@
                             <input type="checkbox" name="toggle" id="mode-toggle" checked class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none pointer-events-auto cursor-pointer"/>
                             <label for="mode-toggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-300"></label>
                         </div>
-                        <span class="text-xs font-bold text-indigo-700 select-none" id="mode-text-adv">Napredno (GLM / Data View) <i class="fa-solid fa-rocket text-indigo-500 hidden" id="adv-icon"></i></span>
+                        <span class="text-xs font-bold text-indigo-700 select-none" id="mode-text-adv">Napredno (GLM / tablični prikaz) <i class="fa-solid fa-rocket text-indigo-500 hidden" id="adv-icon"></i></span>
                     </div>
 
                     <button onclick="exportToJSON()" class="stat-toolbar-btn" title="Izvezi u JSON">
@@ -367,8 +383,8 @@
             <!-- SEKCIJA 1: Tablica frekvencija i deskriptivnih pokazatelja (KPI u stilu statističkog sažetka) -->
             <div class="stat-panel">
                 <div class="stat-panel-header">
-                    <span><i class="fa-solid fa-table-list text-indigo-600 mr-1.5"></i> Tablica 1. Deskriptivni sažetak glavnih varijabli uzorka (Summary Statistics)</span>
-                    <span class="mono text-[11px] text-slate-500" id="lbl-missing-info">VALID N = 500 | TFI COMPLETE = 493</span>
+                    <span><i class="fa-solid fa-table-list text-indigo-600 mr-1.5"></i> Tablica 1. Deskriptivni sažetak glavnih varijabli uzorka</span>
+                    <span class="mono text-[11px] text-slate-500" id="lbl-missing-info">VALJANI N = 500 | KOMPLETNI TFI = 493</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-200" id="kpi-container">
                     
@@ -376,7 +392,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[11px] mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">VAR: A17_FALL</span>
-                                <p class="text-xs font-bold text-slate-600 mt-1.5">Iskustvo pada (12mj)</p>
+                                <p class="text-xs font-bold text-slate-600 mt-1.5">Iskustvo pada (12 mj.)</p>
                             </div>
                             <i class="fa-solid fa-person-falling text-slate-400"></i>
                         </div>
@@ -404,7 +420,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[11px] mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">VAR: TFI_SCORE</span>
-                                <p class="text-xs font-bold text-slate-600 mt-1.5">Prosječna krhkost (Mean)</p>
+                                <p class="text-xs font-bold text-slate-600 mt-1.5">Prosječna krhkost (aritmetička sredina)</p>
                             </div>
                             <i class="fa-solid fa-heart-pulse text-slate-400"></i>
                         </div>
@@ -424,7 +440,7 @@
                         </div>
                         <div class="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between">
                             <h4 class="text-2xl font-black mono text-indigo-700" id="kpi-rep-falls">-</h4>
-                            <span class="text-[11px] mono text-slate-500">Subgroup: High-Risk</span>
+                            <span class="text-[11px] mono text-slate-500">Podskupina: visoki rizik</span>
                         </div>
                     </div>
 
@@ -435,8 +451,8 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" id="basic-charts-container">
                 <div class="stat-panel flex flex-col">
                     <div class="stat-panel-header">
-                        <span><i class="fa-solid fa-chart-pie text-indigo-600 mr-1.5"></i> Grafikon 1. Kontingencijska razdioba: Pad (A17) × Strah (A16)</span>
-                        <span class="mono text-[10px] text-indigo-600" id="matrix-valid-n">VALID N = 490</span>
+                        <span><i class="fa-solid fa-chart-pie text-indigo-600 mr-1.5"></i> Grafikon 1. Kontingencijska razdioba: pad (A17) × strah (A16)</span>
+                        <span class="mono text-[10px] text-indigo-600" id="matrix-valid-n">VALJANI N = 490</span>
                     </div>
                     <div class="p-5 flex-1 flex flex-col">
                         <p class="text-xs text-slate-500 mb-3">Proporcija ispitanika s valjanim odgovorima na obje čestice. <span class="text-indigo-600 font-semibold">Kliknite na odsječak ili karticu ispod za filtriranje tablice.</span></p>
@@ -446,19 +462,19 @@
                         <!-- Eksplicitni prikaz postotaka i frekvencija (N i %) za sva 4 kvadranta -->
                         <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-200 mono text-xs" id="matrix-stats-cards">
                             <div onclick="triggerMatrixQuadrant(0)" class="p-2 rounded border border-emerald-200 bg-emerald-50/60 cursor-pointer hover:bg-emerald-100/70 transition-colors flex justify-between items-center">
-                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>1. Bez pada, Bez straha:</span>
+                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>1. Bez pada, bez straha:</span>
                                 <span class="font-bold text-slate-900" id="mat-q1">164 (33,5%)</span>
                             </div>
                             <div onclick="triggerMatrixQuadrant(1)" class="p-2 rounded border border-amber-200 bg-amber-50/60 cursor-pointer hover:bg-amber-100/70 transition-colors flex justify-between items-center">
-                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>2. Bez pada, Sa strahom:</span>
+                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>2. Bez pada, sa strahom:</span>
                                 <span class="font-bold text-slate-900" id="mat-q2">169 (34,5%)</span>
                             </div>
                             <div onclick="triggerMatrixQuadrant(2)" class="p-2 rounded border border-rose-200 bg-rose-50/60 cursor-pointer hover:bg-rose-100/70 transition-colors flex justify-between items-center">
-                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>3. S padom, Bez straha:</span>
+                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>3. S padom, bez straha:</span>
                                 <span class="font-bold text-slate-900" id="mat-q3">24 (4,9%)</span>
                             </div>
                             <div onclick="triggerMatrixQuadrant(3)" class="p-2 rounded border border-purple-200 bg-purple-50/60 cursor-pointer hover:bg-purple-100/70 transition-colors flex justify-between items-center">
-                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>4. S padom, Sa strahom:</span>
+                                <span class="font-semibold text-slate-700"><span class="inline-block w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>4. S padom, sa strahom:</span>
                                 <span class="font-bold text-slate-900" id="mat-q4">133 (27,1%)</span>
                             </div>
                         </div>
@@ -467,14 +483,14 @@
 
                 <div class="stat-panel flex flex-col">
                     <div class="stat-panel-header">
-                        <span><i class="fa-solid fa-chart-column text-indigo-600 mr-1.5"></i> Grafikon 2. Krhkost (TFI) po domenama: Medijan (IQR) i Prosjek</span>
-                        <div class="flex items-center gap-1">
-                            <button id="btn-tfi-median" onclick="switchTfiMetric('median')" class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-indigo-600 text-white">MEDIJAN (IQR)</button>
-                            <button id="btn-tfi-mean" onclick="switchTfiMetric('mean')" class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-white text-slate-600 border border-slate-300">MEAN</button>
+                        <span><i class="fa-solid fa-chart-column text-indigo-600 mr-1.5"></i> Grafikon 2. Krhkost (TFI) po domenama: medijan (IQR) i prosjek</span>
+                        <div class="flex items-center gap-1 no-print">
+                            <button id="btn-tfi-median" onclick="switchTfiMetric('median')" class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-indigo-600 text-white">Medijan (IQR)</button>
+                            <button id="btn-tfi-mean" onclick="switchTfiMetric('mean')" class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-white text-slate-600 border border-slate-300">Prosjek</button>
                         </div>
                     </div>
                     <div class="p-5 flex-1 flex flex-col">
-                        <p class="text-xs text-slate-500 mb-3">Neparametrijska usporedba medijana (Q1–Q3 interkvartilni raspon) i sredina po domenama (Valid N=493).</p>
+                        <p class="text-xs text-slate-500 mb-3">Neparametrijska usporedba medijana (Q1–Q3 interkvartilni raspon) i aritmetičkih sredina po domenama (valjani N=493).</p>
                         <div class="relative flex-1 min-h-[220px]">
                             <canvas id="tfiBarChart"></canvas>
                         </div>
@@ -483,9 +499,9 @@
                             <table class="w-full text-[11px] mono text-left border-collapse">
                                 <thead>
                                     <tr class="bg-slate-100 text-slate-700 border-b border-slate-300">
-                                        <th class="py-1.5 px-2">TFI Domena</th>
-                                        <th class="py-1.5 px-2">Bez pada: Medijan (IQR)</th>
-                                        <th class="py-1.5 px-2">S padom: Medijan (IQR)</th>
+                                        <th class="py-1.5 px-2">TFI domena</th>
+                                        <th class="py-1.5 px-2">Bez pada: medijan (IQR)</th>
+                                        <th class="py-1.5 px-2">S padom: medijan (IQR)</th>
                                         <th class="py-1.5 px-2 text-right">Značajnost</th>
                                     </tr>
                                 </thead>
@@ -500,7 +516,7 @@
                                         <td class="py-1.5 px-2 font-bold">Psihološka (A9–A12)</td>
                                         <td class="py-1.5 px-2" id="tfi-med-ps-0">3,0 (IQR: 2–3)</td>
                                         <td class="py-1.5 px-2 font-bold text-rose-700" id="tfi-med-ps-1">3,0 (IQR: 2–4)</td>
-                                        <td class="py-1.5 px-2 text-right text-emerald-700 font-bold">p &lt; 0,05* (IQR pomak)</td>
+                                        <td class="py-1.5 px-2 text-right text-emerald-700 font-bold">p &lt; 0,05* (pomak IQR-a)</td>
                                     </tr>
                                     <tr>
                                         <td class="py-1.5 px-2 font-bold">Socijalna (A13–A15)</td>
@@ -521,7 +537,7 @@
                 <div class="stat-panel bg-slate-800 text-white px-4 py-2.5 flex flex-wrap justify-between items-center gap-2 border-slate-700">
                     <div class="flex items-center gap-2 text-xs mono font-bold uppercase tracking-wider">
                         <i class="fa-solid fa-square-root-variable text-indigo-400"></i>
-                        <span> Blok 2: Multivarijatni modeli, Klasteriranje i Podatkovna matrica (Data View)</span>
+                        <span> Blok 2: multivarijatni modeli, klasteriranje i podatkovna matrica</span>
                     </div>
                     <div class="text-xs mono bg-slate-900 px-2.5 py-1 rounded border border-slate-700 text-slate-300">
                         Aktivna specifikacija: <span id="lbl-active-model" class="text-indigo-400 font-bold">Osnovni</span>
@@ -531,8 +547,8 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <div class="stat-panel lg:col-span-2 flex flex-col">
                         <div class="stat-panel-header">
-                            <span><i class="fa-solid fa-capsules text-indigo-600 mr-1.5"></i> Grafikon 3. Polifarmacija i incidencija pada (MRQ-10 Kategorije)</span>
-                            <span class="mono text-[10px] text-rose-600 font-bold">ITEMS: A19–A28</span>
+                            <span><i class="fa-solid fa-capsules text-indigo-600 mr-1.5"></i> Grafikon 3. Polifarmacija i incidencija pada (kategorije MRQ-10)</span>
+                            <span class="mono text-[10px] text-rose-600 font-bold">ČESTICE: A19–A28</span>
                         </div>
                         <div class="p-5 flex-1 flex flex-col">
                             <p class="text-xs text-slate-500 mb-3 mono" id="mrq-stats-subtitle">Korelacija broja uzimanih lijekova i učestalosti padova.</p>
@@ -544,18 +560,18 @@
 
                     <div class="stat-panel bg-slate-900 text-white flex flex-col justify-between relative overflow-hidden border-slate-800">
                         <div class="bg-slate-950 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-[11px] mono text-indigo-300 font-bold">
-                            <span>LOGISTIC REGRESSION // OUTPUT</span>
+                            <span>LOGISTIČKA REGRESIJA // IZLAZ</span>
                             <span>LINK=LOGIT</span>
                         </div>
                         <div class="p-6 flex-1 flex flex-col justify-center">
-                            <h3 class="font-bold text-base mb-1 text-white">Prediktivni Model Vjerojatnosti</h3>
-                            <p class="text-xs text-slate-400 mb-5 leading-relaxed mono">Procijenjena vjerojatnost P(Y=1) temeljem logističke funkcije nad varijablama TFI, BMI i MRQ-10.</p>
+                            <h3 class="font-bold text-base mb-1 text-white">Prediktivni model vjerojatnosti</h3>
+                            <p class="text-xs text-slate-400 mb-5 leading-relaxed mono">Procijenjena vjerojatnost P(Y=1) temeljem logističke funkcije nad varijablama TFI, ITM i MRQ-10.</p>
                             
                             <div class="bg-slate-800/90 p-4 rounded border border-slate-700">
-                                <div class="text-[10px] mono font-bold text-indigo-300 uppercase tracking-wider mb-1">Mean Predicted Probability (Kohorta)</div>
+                                <div class="text-[10px] mono font-bold text-indigo-300 uppercase tracking-wider mb-1">Prosječna predviđena vjerojatnost (kohorta)</div>
                                 <div class="flex items-baseline gap-2">
                                     <span class="text-3xl font-black mono text-white" id="avg-risk-score">0%</span>
-                                    <span class="text-xs mono text-slate-400">E[P(Fall)]</span>
+                                    <span class="text-xs mono text-slate-400">E[P(pad)]</span>
                                 </div>
                                 <div class="w-full bg-slate-950 h-2 rounded overflow-hidden mt-3 border border-slate-700">
                                     <div id="risk-bar" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-full w-0 transition-all duration-1000"></div>
@@ -568,8 +584,8 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <div class="stat-panel flex flex-col">
                         <div class="stat-panel-header">
-                            <span><i class="fa-solid fa-diagram-project text-indigo-600 mr-1.5"></i> Grafikon 4. Multivarijatni profil opterećenja (Spider Plot)</span>
-                            <span class="mono text-[10px] text-slate-500">SCALE: NORMALIZED (0-100%)</span>
+                            <span><i class="fa-solid fa-diagram-project text-indigo-600 mr-1.5"></i> Grafikon 4. Multivarijatni profil opterećenja (mrežni dijagram)</span>
+                            <span class="mono text-[10px] text-slate-500">SKALA: NORMALIZIRANO (0-100%)</span>
                         </div>
                         <div class="p-5 flex-1 flex flex-col">
                             <p class="text-xs text-slate-500 mb-3">Normalizirana usporedba opterećenja (%) po domenama između podskupina.</p>
@@ -582,7 +598,7 @@
                     <div class="stat-panel flex flex-col">
                         <div class="stat-panel-header">
                             <span><i class="fa-solid fa-braille text-indigo-600 mr-1.5"></i> Grafikon 5. Bivarijatno klasteriranje: TFI × MRQ-10</span>
-                            <span class="mono text-[10px] text-slate-500">WEIGHTED BUBBLE PLOT</span>
+                            <span class="mono text-[10px] text-slate-500">PONDERIRANI MJERNI DIJAGRAM</span>
                         </div>
                         <div class="p-5 flex-1 flex flex-col">
                             <p class="text-xs text-slate-500 mb-3">Točke predstavljaju grupirane slučajeve istih koordinata. Radijus = frekvencija slučajeva (n).</p>
@@ -597,14 +613,14 @@
                 <div class="stat-panel overflow-hidden">
                     <div class="stat-panel-header !py-2.5">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span><i class="fa-solid fa-table text-indigo-600 mr-1.5"></i> Data View: Pojedinačni slučajevi (Casewise Diagnostics)</span>
+                            <span><i class="fa-solid fa-table text-indigo-600 mr-1.5"></i> Podatkovni prikaz: pojedinačni slučajevi</span>
                             <button id="clear-filter-btn" class="hidden px-2 py-0.5 bg-rose-100 text-rose-700 border border-rose-300 rounded text-[11px] mono font-bold hover:bg-rose-200 transition-colors" onclick="clearTableFilter()">
-                                FILTER: <span id="filter-label"></span> <i class="fa-solid fa-xmark ml-1"></i>
+                                FILTAR: <span id="filter-label"></span> <i class="fa-solid fa-xmark ml-1"></i>
                             </button>
                         </div>
                         <div class="relative no-print">
                             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="search-input" placeholder="Filter Case ID..." class="pl-8 pr-3 py-1 bg-white border border-slate-300 rounded text-xs mono focus:outline-none focus:border-indigo-600 w-48 sm:w-60">
+                            <input type="text" id="search-input" placeholder="Filtriraj po šifri..." class="pl-8 pr-3 py-1 bg-white border border-slate-300 rounded text-xs mono focus:outline-none focus:border-indigo-600 w-48 sm:w-60">
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -617,7 +633,7 @@
                                     <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('mrq')">MRQ_10 <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-mrq"></i></th>
                                     <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('a17_fall')">A17_FALL <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-a17_fall"></i></th>
                                     <th class="px-4 py-2.5 cursor-pointer hover:bg-slate-200 transition-colors" onclick="sortTableBy('risk')">PRED_PROB <i class="fa-solid fa-sort sort-icon ml-1" id="sort-icon-risk"></i></th>
-                                    <th class="px-4 py-2.5 text-right no-print">INSPECT</th>
+                                    <th class="px-4 py-2.5 text-right no-print">PREGLED</th>
                                 </tr>
                             </thead>
                             <tbody id="patient-table-body" class="mono">
@@ -625,7 +641,7 @@
                         </table>
                     </div>
                     <div class="p-3 bg-slate-100 border-t border-slate-300 flex justify-center no-print">
-                        <button id="btn-load-more" class="px-4 py-1.5 text-xs mono font-bold text-indigo-700 bg-white border border-slate-300 rounded hover:bg-indigo-50 transition-colors shadow-sm">Učitaj sljedećih 10 redaka (+10 Cases)</button>
+                        <button id="btn-load-more" class="px-4 py-1.5 text-xs mono font-bold text-indigo-700 bg-white border border-slate-300 rounded hover:bg-indigo-50 transition-colors shadow-sm">Učitaj sljedećih 10 redaka</button>
                     </div>
                 </div>
             </div>
@@ -635,13 +651,13 @@
         <!-- Donja statusna traka statističkog paketa -->
         <footer id="stat-statusbar" class="fixed bottom-0 inset-x-0 bg-slate-800 text-slate-300 border-t border-slate-700 px-4 py-1.5 flex items-center justify-between text-[11px] mono z-30 no-print">
             <div class="flex items-center gap-4">
-                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> IBM/UHCE Stat Processor Ready</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> IBM/UHCE statistički procesor spreman</span>
                 <span class="hidden sm:inline text-slate-400">|</span>
-                <span class="hidden sm:inline text-slate-400">Confidence Interval: 95%</span>
+                <span class="hidden sm:inline text-slate-400">Interval pouzdanosti: 95%</span>
             </div>
             <div class="flex items-center gap-4">
-                <span>Weights: <strong class="text-indigo-300">ACTIVE</strong></span>
-                <span>Locale: hr_HR.UTF-8</span>
+                <span>Ponderi: <strong class="text-indigo-300">AKTIVNI</strong></span>
+                <span>Lokalizacija: hr_HR.UTF-8</span>
             </div>
         </footer>
 
@@ -655,7 +671,7 @@
                     <div class="w-8 h-8 rounded bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center mono font-bold text-xs text-indigo-300" id="modal-avatar">ID</div>
                     <div>
                         <h2 class="text-base font-bold mono" id="modal-id">HRI-XXX</h2>
-                        <p class="text-slate-400 text-xs mono">Casewise Diagnostic & XAI Output</p>
+                        <p class="text-slate-400 text-xs mono">Pojedinačna dijagnostika i XAI izlaz</p>
                     </div>
                 </div>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
@@ -664,7 +680,7 @@
             </div>
             <div class="p-6 overflow-y-auto" id="modal-content"></div>
             <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-300 flex justify-end">
-                <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 text-white text-xs mono font-bold rounded hover:bg-slate-700 transition-colors">Zatvori inspektor</button>
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 text-white text-xs mono font-bold rounded hover:bg-slate-700 transition-colors">Zatvori pregled</button>
             </div>
         </div>
     </div>
@@ -937,10 +953,10 @@
 
                     let _bEx = (_bmi > 30) ? _bmi - 30 : 0, _cTFI = (_tPh * _w1) + (_tPs * _w2) + (_tSo * _w3), _cBMI = _bEx * _w4, _cMRQ = _mrq * _w5;
                     let _lgt = _w0 + _cTFI + _cBMI + _cMRQ, _prb = 1 / (1 + Math.exp(-_lgt)), _rsk = Math.round(_prb * 100);
-                    let _topF = "Mješovito";
-                    if (_cMRQ > _cTFI && _cMRQ > _cBMI && _mrq > 3) _topF = "Polifarmacija (Prekomjeran broj lijekova)";
-                    else if (_cTFI >= _cMRQ && _cTFI > _cBMI) _topF = "Krhkost (TFI Sindrom)";
-                    else if (_cBMI > _cTFI && _cBMI > _cMRQ) _topF = "Obezitet (BMI > 30)";
+                    let _topF = "mješovito";
+                    if (_cMRQ > _cTFI && _cMRQ > _cBMI && _mrq > 3) _topF = "polifarmacija (prekomjeran broj lijekova)";
+                    else if (_cTFI >= _cMRQ && _cTFI > _cBMI) _topF = "krhkost (TFI sindrom)";
+                    else if (_cBMI > _cTFI && _cBMI > _cMRQ) _topF = "pretilost (ITM > 30)";
 
                     _out.push({
                         id: _r['šifra'] || _r['Šifra'] || _r['RB'] || _r['ID'] || `HRI-${1001 + _idx}`, bmi: _bmi,
@@ -1022,7 +1038,7 @@
                 const _tfiN = _tfiValidList.length;
 
                 _0x4d8e.getElementById('hdr-cohort-size').innerText = _tot;
-                _0x4d8e.getElementById('lbl-missing-info').innerText = `VALID N = ${_tot} | TFI COMPLETE = ${_tfiN}`;
+                _0x4d8e.getElementById('lbl-missing-info').innerText = `VALJANI N = ${_tot} | KOMPLETNI TFI = ${_tfiN}`;
 
                 const _fallDenom = _validFallList.length || _tot;
                 const _fearDenom = _validFearList.length || _tot;
@@ -1039,8 +1055,8 @@
                 _0x4d8e.getElementById('kpi-rep-falls').innerText = _0xData.filter(_d => _d.a18_falls >= 2).length;
                 const _avgR = _tot ? Math.round(_0xData.reduce((_a, _d) => _a + _d.risk, 0) / _tot) : 0, _nw = new Date(), _sel = _0x4d8e.getElementById('analytics-approach');
                 _0x4d8e.getElementById('print-date').innerText = _nw.toLocaleDateString('hr-HR') + ' u ' + _nw.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' });
-                _0x4d8e.getElementById('print-model').innerText = _sel ? _sel.options[_sel.selectedIndex].text : 'Standardna Analiza';
-                _0x4d8e.getElementById('print-n').innerText = `${_tot} ispitanika (TFI kompletni: ${_tfiN})`;
+                _0x4d8e.getElementById('print-model').innerText = _sel ? _sel.options[_sel.selectedIndex].text : 'Standardna analiza';
+                _0x4d8e.getElementById('print-n').innerText = `${_tot} ispitanika (kompletni TFI: ${_tfiN})`;
                 _0x4d8e.getElementById('print-falls').innerText = _fallDenom ? `${_fls} pacijenata (${((_fls / _fallDenom) * 100).toFixed(1).replace('.', ',')}%)` : '-';
                 _0x4d8e.getElementById('print-tfi').innerText = `${_avgT} / 15 (N=${_tfiN})`;
                 _0x4d8e.getElementById('print-risk').innerText = _avgR + '%';
@@ -1061,7 +1077,7 @@
 
             _0x9a1c.triggerMatrixQuadrant = function(_ix) {
                 const _cb = [{ fall: 0, fear: 0 }, { fall: 0, fear: 1 }, { fall: 1, fear: 0 }, { fall: 1, fear: 1 }];
-                const _lb = ['1. Bez pada, Bez straha', '2. Bez pada, Sa strahom', '3. S padom, Bez straha', '4. S padom, Sa strahom'];
+                const _lb = ['1. Bez pada, bez straha', '2. Bez pada, sa strahom', '3. S padom, bez straha', '4. S padom, sa strahom'];
                 _0xFltr = _cb[_ix];
                 _0x4d8e.getElementById('filter-label').innerText = _lb[_ix];
                 _0x4d8e.getElementById('clear-filter-btn').classList.remove(_0x5a1f[8]);
@@ -1103,17 +1119,17 @@
 
                 const _matTot = (_m00 + _m01 + _m10 + _m11) || 1;
                 const _fmtPct = (_v) => ((_v / _matTot) * 100).toFixed(1).replace('.', ',');
-                _0x4d8e.getElementById('matrix-valid-n').innerText = `VALID N = ${_m00 + _m01 + _m10 + _m11}`;
+                _0x4d8e.getElementById('matrix-valid-n').innerText = `VALJANI N = ${_m00 + _m01 + _m10 + _m11}`;
                 _0x4d8e.getElementById('mat-q1').innerText = `${_m00} (${_fmtPct(_m00)}%)`;
                 _0x4d8e.getElementById('mat-q2').innerText = `${_m01} (${_fmtPct(_m01)}%)`;
                 _0x4d8e.getElementById('mat-q3').innerText = `${_m10} (${_fmtPct(_m10)}%)`;
                 _0x4d8e.getElementById('mat-q4').innerText = `${_m11} (${_fmtPct(_m11)}%)`;
 
                 const _matLabels = [
-                    `1. Bez pada, Bez straha: ${_m00} (${_fmtPct(_m00)}%)`,
-                    `2. Bez pada, Sa strahom: ${_m01} (${_fmtPct(_m01)}%)`,
-                    `3. S padom, Bez straha: ${_m10} (${_fmtPct(_m10)}%)`,
-                    `4. S padom, Sa strahom: ${_m11} (${_fmtPct(_m11)}%)`
+                    `1. Bez pada, bez straha: ${_m00} (${_fmtPct(_m00)}%)`,
+                    `2. Bez pada, sa strahom: ${_m01} (${_fmtPct(_m01)}%)`,
+                    `3. S padom, bez straha: ${_m10} (${_fmtPct(_m10)}%)`,
+                    `4. S padom, sa strahom: ${_m11} (${_fmtPct(_m11)}%)`
                 ];
 
                 if (_0xCharts.matrix) _0xCharts.matrix.destroy();
@@ -1164,8 +1180,8 @@
                     data: {
                         labels: ['Fizička (0-8)', 'Psihološka (0-4)', 'Socijalna (0-3)'],
                         datasets: [
-                            { label: _useMed ? 'Osobe bez pada (Medijan)' : 'Osobe bez pada (Mean)', data: _dNF, backgroundColor: '#94a3b8', borderRadius: 6 },
-                            { label: _useMed ? 'Osobe s padom (Medijan)' : 'Osobe s padom (Mean)', data: _dF, backgroundColor: '#e11d48', borderRadius: 6 }
+                            { label: _useMed ? 'Osobe bez pada (medijan)' : 'Osobe bez pada (prosjek)', data: _dNF, backgroundColor: '#94a3b8', borderRadius: 6 },
+                            { label: _useMed ? 'Osobe s padom (medijan)' : 'Osobe s padom (prosjek)', data: _dF, backgroundColor: '#e11d48', borderRadius: 6 }
                         ]
                     },
                     options: {
@@ -1177,7 +1193,7 @@
                                     afterLabel: (_ctx) => {
                                         const _doms = ['ph', 'ps', 'so'];
                                         const _st = (_ctx.datasetIndex === 0 ? _stNF : _stF)[_doms[_ctx.dataIndex]];
-                                        return `Medijan: ${_st.med} (IQR: ${_st.q1}–${_st.q3}) | Mean: ${_st.mean}`;
+                                        return `Medijan: ${_st.med} (IQR: ${_st.q1}–${_st.q3}) | Prosjek: ${_st.mean}`;
                                     }
                                 }
                             }
@@ -1207,10 +1223,10 @@
             }
 
             function _0xRndPoly() {
-                let _bns = { '0-2 lijeka': { fall: 0, no: 0 }, '3-5 lijekova': { fall: 0, no: 0 }, '6+ (Polifarmacija)': { fall: 0, no: 0 } }, _mv = [];
+                let _bns = { '0-2 lijeka': { fall: 0, no: 0 }, '3-5 lijekova': { fall: 0, no: 0 }, '6+ (polifarmacija)': { fall: 0, no: 0 } }, _mv = [];
                 _0xData.forEach(_d => {
                     _mv.push(_d.mrq);
-                    let _b = _d.mrq <= 2 ? '0-2 lijeka' : (_d.mrq <= 5 ? '3-5 lijekova' : '6+ (Polifarmacija)');
+                    let _b = _d.mrq <= 2 ? '0-2 lijeka' : (_d.mrq <= 5 ? '3-5 lijekova' : '6+ (polifarmacija)');
                     if (_d.a17_fall === 1) _bns[_b].fall++; else _bns[_b].no++;
                 });
                 _mv.sort((_a, _b) => _a - _b);
@@ -1221,13 +1237,13 @@
                     let _mn = _mv.reduce((_a, _b) => _a + _b, 0) / _mv.length;
                     _sd = Math.sqrt(_mv.map(_x => Math.pow(_x - _mn, 2)).reduce((_a, _b) => _a + _b) / _mv.length).toFixed(1);
                 }
-                _0x4d8e.getElementById('mrq-stats-subtitle').innerHTML = `Kohorta: <b>Medijan: ${_med} lijeka</b> | SD: ${_sd}`;
+                _0x4d8e.getElementById('mrq-stats-subtitle').innerHTML = `Kohorta: <b>medijan: ${_med} lijeka</b> | SD: ${_sd}`;
                 const _lbs = Object.keys(_bns), _dfp = _lbs.map(_l => { let _t = _bns[_l].fall + _bns[_l].no; return _t > 0 ? ((_bns[_l].fall / _t) * 100).toFixed(1) : 0; });
                 if (_0xCharts.mrq) _0xCharts.mrq.destroy();
                 _0xCharts.mrq = new Chart(_0x4d8e.getElementById('mrqChart').getContext('2d'), {
                     type: 'bar',
-                    data: { labels: _lbs, datasets: [{ label: '% Osoba s padom u skupini', data: _dfp, backgroundColor: '#6366f1', borderRadius: 6 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '% Rizika od pada' }, min: 0 } }, plugins: { legend: { display: false } } }
+                    data: { labels: _lbs, datasets: [{ label: '% osoba s padom u skupini', data: _dfp, backgroundColor: '#6366f1', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { title: { display: true, text: '% rizika od pada' }, min: 0 } }, plugins: { legend: { display: false } } }
                 });
             }
 
@@ -1242,10 +1258,10 @@
                 _0xCharts.radar = new Chart(_0x4d8e.getElementById('radarChart').getContext('2d'), {
                     type: 'radar',
                     data: {
-                        labels: ['Fizička Krhkost', 'Psihološka Krhkost', 'Socijalna Krhkost', 'Polifarmacija'],
+                        labels: ['Fizička krhkost', 'Psihološka krhkost', 'Socijalna krhkost', 'Polifarmacija'],
                         datasets: [
-                            { label: 'S padom (Prosjek %)', data: [_nrm(_fS.ph, 8, _fS.count), _nrm(_fS.ps, 4, _fS.count), _nrm(_fS.so, 3, _fS.count), _nrm(_fS.mrq, 10, _fS.count)], backgroundColor: 'rgba(225, 29, 72, 0.2)', borderColor: '#e11d48', borderWidth: 2 },
-                            { label: 'Bez pada (Prosjek %)', data: [_nrm(_nfS.ph, 8, _nfS.count), _nrm(_nfS.ps, 4, _nfS.count), _nrm(_nfS.so, 3, _nfS.count), _nrm(_nfS.mrq, 10, _nfS.count)], backgroundColor: 'rgba(148, 163, 184, 0.2)', borderColor: '#94a3b8', borderWidth: 2 }
+                            { label: 'S padom (prosjek %)', data: [_nrm(_fS.ph, 8, _fS.count), _nrm(_fS.ps, 4, _fS.count), _nrm(_fS.so, 3, _fS.count), _nrm(_fS.mrq, 10, _fS.count)], backgroundColor: 'rgba(225, 29, 72, 0.2)', borderColor: '#e11d48', borderWidth: 2 },
+                            { label: 'Bez pada (prosjek %)', data: [_nrm(_nfS.ph, 8, _nfS.count), _nrm(_nfS.ps, 4, _nfS.count), _nrm(_nfS.so, 3, _nfS.count), _nrm(_nfS.mrq, 10, _nfS.count)], backgroundColor: 'rgba(148, 163, 184, 0.2)', borderColor: '#94a3b8', borderWidth: 2 }
                         ]
                     },
                     options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100 } } }
@@ -1269,14 +1285,14 @@
                     type: 'bubble',
                     data: {
                         datasets: [
-                            { label: 'Grupe Bez pada', data: _nfB, backgroundColor: 'rgba(148, 163, 184, 0.6)' },
-                            { label: 'Grupe S padom', data: _fB, backgroundColor: 'rgba(225, 29, 72, 0.7)' }
+                            { label: 'Skupine bez pada', data: _nfB, backgroundColor: 'rgba(148, 163, 184, 0.6)' },
+                            { label: 'Skupine s padom', data: _fB, backgroundColor: 'rgba(225, 29, 72, 0.7)' }
                         ]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        scales: { x: { title: { display: true, text: 'Ukupni TFI (0-15)' } }, y: { title: { display: true, text: 'Broj Lijekova' } } },
-                        plugins: { tooltip: { callbacks: { label: (_ctx) => `Pacijenata: ${_ctx.raw.count} | TFI: ${_ctx.raw.x} | Lijekovi: ${_ctx.raw.y} | Pros. Rizik: ${_ctx.raw.avgRisk}%` } } }
+                        scales: { x: { title: { display: true, text: 'Ukupni TFI (0-15)' } }, y: { title: { display: true, text: 'Broj lijekova' } } },
+                        plugins: { tooltip: { callbacks: { label: (_ctx) => `Pacijenata: ${_ctx.raw.count} | TFI: ${_ctx.raw.x} | Lijekovi: ${_ctx.raw.y} | Prosječni rizik: ${_ctx.raw.avgRisk}%` } } }
                     }
                 });
             }
@@ -1327,9 +1343,9 @@
                 _0x4d8e.getElementById('modal-avatar').innerText = _p.id.split('-')[1] || 'ID';
                 const _cnt = _0x4d8e.getElementById('modal-content');
                 let _ra = _p.risk > 50
-                    ? `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-3 text-rose-700 mb-6"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl"></i><div><strong class="block text-lg">Kritičan prediktivni rizik: ${_p.risk}%</strong>Model ukazuje da je glavni faktor za ovog pacijenta: <b>${_p.xai}</b>. Preporuča se hitna intervencija.</div></div>`
-                    : `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex gap-3 text-emerald-700 mb-6"><i class="fa-solid fa-check-circle mt-1 text-xl"></i><div><strong class="block text-lg">Umjeren rizik: ${_p.risk}%</strong>Dominantan faktor: <b>${_p.xai}</b>. Nastaviti praćenje.</div></div>`;
-                _cnt.innerHTML = `${_ra}<div class="grid grid-cols-2 gap-4 mb-6"><div class="p-4 border rounded-xl bg-slate-50 text-center"><p class="text-xs font-bold text-slate-500 uppercase">Status pada (12mj)</p><p class="text-2xl font-black mt-1 ${_p.a17_fall ? 'text-rose-600' : 'text-slate-800'}">${_p.a17_fall ? 'Pao/la' : 'Nije pao/la'}</p></div><div class="p-4 border rounded-xl bg-slate-50 text-center"><p class="text-xs font-bold text-slate-500 uppercase">Strah od pada</p><p class="text-2xl font-black mt-1 ${_p.a16_fear ? 'text-amber-500' : 'text-slate-800'}">${_p.a16_fear ? 'Prisutan' : 'Odsutan'}</p></div></div><h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Klinički Indikatori</h3><ul class="space-y-3"><li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm"><span class="font-medium text-slate-600"><i class="fa-solid fa-heart-pulse w-6 text-indigo-400"></i> Ukupni TFI (Krhkost)</span><span class="font-black text-lg text-indigo-700">${_p.tfi_total} <span class="text-xs font-normal text-slate-400">/ 15</span></span></li><li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm"><span class="font-medium text-slate-600"><i class="fa-solid fa-pills w-6 text-indigo-400"></i> MRQ-10 (Lijekovi)</span><span class="font-black text-lg">${_p.mrq}</span></li></ul>`;
+                    ? `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-3 text-rose-700 mb-6"><i class="fa-solid fa-triangle-exclamation mt-1 text-xl"></i><div><strong class="block text-lg">Kritičan prediktivni rizik: ${_p.risk}%</strong>Model ukazuje da je glavni čimbenik za ovog pacijenta: <b>${_p.xai}</b>. Preporučuje se hitna intervencija.</div></div>`
+                    : `<div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex gap-3 text-emerald-700 mb-6"><i class="fa-solid fa-check-circle mt-1 text-xl"></i><div><strong class="block text-lg">Umjeren rizik: ${_p.risk}%</strong>Dominantan čimbenik: <b>${_p.xai}</b>. Nastaviti praćenje.</div></div>`;
+                _cnt.innerHTML = `${_ra}<div class="grid grid-cols-2 gap-4 mb-6"><div class="p-4 border rounded-xl bg-slate-50 text-center"><p class="text-xs font-bold text-slate-500 uppercase">Status pada (12 mj.)</p><p class="text-2xl font-black mt-1 ${_p.a17_fall ? 'text-rose-600' : 'text-slate-800'}">${_p.a17_fall ? 'Pao/la' : 'Nije pao/la'}</p></div><div class="p-4 border rounded-xl bg-slate-50 text-center"><p class="text-xs font-bold text-slate-500 uppercase">Strah od pada</p><p class="text-2xl font-black mt-1 ${_p.a16_fear ? 'text-amber-500' : 'text-slate-800'}">${_p.a16_fear ? 'Prisutan' : 'Odsutan'}</p></div></div><h3 class="font-bold text-slate-800 border-b pb-2 mb-4">Klinički indikatori</h3><ul class="space-y-3"><li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm"><span class="font-medium text-slate-600"><i class="fa-solid fa-heart-pulse w-6 text-indigo-400"></i> Ukupni TFI (krhkost)</span><span class="font-black text-lg text-indigo-700">${_p.tfi_total} <span class="text-xs font-normal text-slate-400">/ 15</span></span></li><li class="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm"><span class="font-medium text-slate-600"><i class="fa-solid fa-pills w-6 text-indigo-400"></i> MRQ-10 (lijekovi)</span><span class="font-black text-lg">${_p.mrq}</span></li></ul>`;
                 _0x4d8e.getElementById('patient-modal').classList.remove(_0x5a1f[8]); _0x4d8e.getElementById('patient-modal').classList.add(_0x5a1f[10]);
             };
 
